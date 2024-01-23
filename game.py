@@ -1,4 +1,5 @@
 NOMBRE_JOUEURS = 3
+
 couleurs = ["rouge", "vert", "bleu", "jaune", "blanc"]
 
 class Carte :
@@ -13,4 +14,5 @@ class Pioche :
     def __init__(self, NOMBRE_JOUEURS) :
         self.pioche = []
         for i in range (NOMBRE_JOUEURS) :
-            for i in range (10) :
+            for j in range (10) :
+                if 
