@@ -50,13 +50,13 @@ def main(port):
 
         # Création des processus
         processes = []
-        processes.append(Process(target = game.gameProcess, args = (tas, tokens, nb_joueurs)))
+        processes.append(Process(target = game.gameProcess, args = (tas, tokens, nb_joueurs, port)))
         
 
         threads = []
         # Création des threads joueurs
         for player in joueurs:
-            threads.append(threading.Thread(target = player.run, args = (tas, tokens, clear)))
+            threads.append(threading.Thread(target = player.run, args = (tas, tokens, clear, port)))
         
 
         # Lancement des processus

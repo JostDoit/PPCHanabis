@@ -82,12 +82,11 @@ def handleMessage(msg, tas, tokens, pioche) : #fonction qui traite le message d'
 def client_handler(s, a, tas, tokens, pioche) :
     with s :
         data = s.recv(1024)
-        while len(data) :
-            s.sendall(data)
-            data = s.recv(1024)
+        while len(data) :            
             msgfromclient = str(data.decode())
             msgtoclient = handleMessage(msgfromclient, tas, tokens, pioche)
             s.send(msgtoclient.encode())
+            data = s.recv(1024)
 
 def SendCards(s, n, msg, pioche) :
     for i in range(n) :
