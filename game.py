@@ -73,7 +73,7 @@ def handleMessage(msg, tas, tokens, pioche) : #fonction qui traite le message d'
             return "RIGHT " + carte.couleur + " " + str(carte.numero)
 
         else : #mauvaise carte, on perd un jeton vie
-            tokens.vies -= 1
+            tokens.vies.value -= 1
             carte = pioche.piocher()
             return "WRONG " + carte.couleur + " " + str(carte.numero)
     
