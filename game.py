@@ -95,7 +95,7 @@ def client_handler(s, a, tas, tokens, pioche) :
 def SendCards(s, n, msg, pioche) :
     for i in range(n) :
         carte = pioche.piocher()
-        message = msg + " " + carte.numero + " " + carte.couleur
+        message = msg + " " + str(carte.numero) + " " + carte.couleur
         s.send(message.encode())
 
 def socketProcess(nb_joueurs, tas, tokens, pioche) :
