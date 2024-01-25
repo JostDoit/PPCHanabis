@@ -53,11 +53,11 @@ def handlerEndGame(nb_joueurs, tas, tokens) :
             break
 
 
-def gameProcess(tas, tokens, nb_joueurs) :
+def gameProcess(tas, tokens, nb_joueurs, port) :
     pioche = Pioche(nb_joueurs)
 
     ProcesshandlerEndGame = Process(target = handlerEndGame, args = (nb_joueurs, tas, tokens))
-    Processsocket = Process(target = socketProcess, args = (nb_joueurs, tas, tokens, pioche))
+    Processsocket = Process(target = socketProcess, args = (nb_joueurs, tas, tokens, pioche, port))
 
     Processsocket.start()
     ProcesshandlerEndGame.start()
@@ -96,9 +96,9 @@ def SendCards(s, n, msg, pioche) :
         s.send(message.encode())
         time.sleep(1)
 
-def socketProcess(nb_joueurs, tas, tokens, pioche) :
+def socketProcess(nb_joueurs, tas, tokens, pioche, port) :
     HOST = "localhost"
-    PORT = 6669
+    PORT = port
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket :
         server_socket.bind((HOST, PORT))
         server_socket.listen(nb_joueurs)

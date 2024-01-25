@@ -20,7 +20,7 @@ def printTitle() :
     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═════╝ ╚═╝╚══════╝
     """)
 
-def main():
+def main(port):
     printTitle()
     with Manager() as manager:
 
@@ -74,4 +74,13 @@ def main():
             p.join()
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print("required index argument missing, terminating.", file=sys.stderr)
+        sys.exit(1)
+    try:
+        port = int(sys.argv[1])
+    except ValueError:
+        print(f"bad index argument: {sys.argv[1]}, terminating.", file=sys.stderr)
+        sys.exit(2)
+
+    main(port)

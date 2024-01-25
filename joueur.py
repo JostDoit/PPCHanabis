@@ -136,12 +136,12 @@ class Joueur :
         print()
         print()
     
-    def run(self, tas, tokens, clear_func) :
+    def run(self, tas, tokens, clear_func, port) :
         """Fonction principale du joueur"""
         # Création de la socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as game_socket :
             # Connexion au serveur
-            game_socket.connect(("localhost", 6669))
+            game_socket.connect(("localhost", port))
             self.draw_first_hand(game_socket)
             while True :
                 if self.tour :
