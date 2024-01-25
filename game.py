@@ -76,10 +76,8 @@ def handleMessage(msg, tas, tokens, pioche) : #fonction qui traite le message d'
             tokens.vies -= 1
             carte = pioche.piocher()
             return "WRONG " + carte.couleur + " " + str(carte.numero)
-    
 
-
-def client_handler(s, a, tas, tokens, pioche) :
+def client_handler(s, tas, tokens, pioche) :
     with s :
         data = s.recv(1024)
         msgfromclient = str(data.decode())
