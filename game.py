@@ -1,5 +1,6 @@
 import random
 from multiprocessing import Process, Manager
+import socket
 
 NOMBRE_JOUEURS = 3
 couleurs = ["rouge", "vert", "bleu", "jaune", "blanc"]
@@ -39,26 +40,24 @@ class Pioche :
 
 class Tas :
     def __init__(self, manager) :
-        self.tas = manager.dict({couleurs[i] : None for i in range(NOMBRE_JOUEURS)})
+        self.tas = manager.dict({couleurs[i] : 0 for i in range(NOMBRE_JOUEURS)})
     
     def ajouter_tas (self, carte) :
         self.tas[carte.couleur] = carte
 
 def handlerEndGame(tas, list_tokens):
     while True :
-        if sum([list(tas.tas.values())[i] for i in range(NOMBRE_JOUEURS)]) == 5*NOMBRE_JOUEURS :
-            None #fin du jeu : le tas est finito pipo
+        if sum([list(tas.tas.values())[i] for i in range(NOMBRE_JOUEURS)]) == NOMBRE_JOUEURS*5 :
+            break
         elif [list_tokens[i].vies for i in range(NOMBRE_JOUEURS)].count(0) != 0 : 
-            None #fin du jeu : un des joueurs n'a plus de vies, cest ciao
+            break
 
 
-def gameProcess() :
-    with Manager() as manager :
-        pioche = Pioche()
-        list_tokens = manager.list([Tokens(manager) for i in range(NOMBRE_JOUEURS)])
-        tas = Tas(manager)
-        ProcesshandlerEndGame = Process(target = handlerEndGame, args = (tas, list_tokens))
-        ProcesshandlerEndGame.start()
+def gameProcess(tas, tokens) :
+    pioche = Pioche()
+    ProcesshandlerEndGame = Process(target = handlerEndGame, args = (tas, tokens))
+    ProcesshandlerEndGame.start()
+    ProcesshandlerEndGame.join()
 
 
 if __name__ == '__main__' :
