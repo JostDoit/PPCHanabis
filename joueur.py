@@ -21,17 +21,24 @@ class Joueur :
         self.message_queues_in = {} # Dictionnaire contenant les Message queue pour les messages entrants entre les joueurs
         self.message_queues_out = {} # Dictionnaire contenant les Message queue pour les messages sortants entre les joueurs
     
-    def play_card(self, card_to_play, game_socket) :
+    def play_card(self, indice_card_to_play, game_socket) :
         """Envoie au serveur la carte à jouer"""
+        card_to_play = self.hand[indice_card_to_play]
         message = "PLAY " + " ".join(map(str, (card_to_play.numero, card_to_play.couleur)))
         game_socket.sendall(message.encode())
-        self.hand.remove(card_to_play)
+        del self.known_hand[indice_card_to_play]
+        del self.hand[indice_card_to_play]
+        return self.draw_card(game_socket)
+        
     
     def draw_card(self, game_socket) :
         """Récupère une carte de la pioche"""
         data = game_socket.recv(1024).decode().split()
-        new_card = game.Carte(data[0], data[1])
+        resultat = data[0]
+        new_card = game.Carte(data[1], data[2])
         self.hand.append(new_card)
+        self.known_hand.append((False, False))
+        return resultat
 
     def draw_first_hand(self, game_socket) :
         """Récupère les 5 premières cartes de la pioche"""
@@ -149,9 +156,15 @@ class Joueur :
                         choix = input("Entrez votre choix : ")
                         if choix == "1" :
                             print("Quelle carte veux-tu jouer ? (de 1 à 5)")
-                            indice_carte_a_jouer = int(input())
-                            carte_a_jouer = self.hand[indice_carte_a_jouer-1]
-                            self.play_card(carte_a_jouer, game_socket)
+                            indice_carte_a_jouer = int(input())                            
+                            resultat = self.play_card(indice_carte_a_jouer - 1, game_socket)
+                            if resultat == "WRIGHT" :
+                                print("Bonne carte, bien joué !")
+                            elif resultat == "WRONG" :
+                                print("Mauvaise carte, tu t'es trompé, noob !")
+                                tokens.vies -= 1
+                            print("Au tour du joueur suivant !")
+                            self.tour = False
 
                         elif choix == "2" :
                             print("Entrez le numéro du joueur à qui donner le hint")
@@ -170,7 +183,6 @@ class Joueur :
                                 self.give_hint(hint, numero_joueur)
                         else :
                             print("Choix invalide")
-                else :
                     
 
 

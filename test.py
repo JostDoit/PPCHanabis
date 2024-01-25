@@ -1,14 +1,6 @@
-class Couleurs:
-    RESET = '\033[0m'
-    ROUGE = '\033[91m'
-    VERT = '\033[92m'
-    BLEU = '\033[94m'
+ma_liste = [1, 2, 3, 4, 5]
 
-def print_en_couleur(texte, couleur):
-    print(f"{couleur}{texte}{Couleurs.RESET}")
+# Retire l'élément à l'index 2 sans renvoyer sa valeur
+del ma_liste[2]
 
-# Exemples d'utilisation
-print_en_couleur("Texte en rouge", Couleurs.ROUGE)
-print_en_couleur("Texte en vert", Couleurs.VERT)
-print_en_couleur("Texte en bleu", Couleurs.BLEU)
-print_en_couleur("Texte en ?", Couleurs.RESET)
+print("Liste mise à jour:", ma_liste)
