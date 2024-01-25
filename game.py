@@ -45,11 +45,11 @@ class Tas :
     def ajouter_tas (self, carte) :
         self.tas[carte.couleur] = carte
 
-def handlerEndGame(tas, list_tokens):
+def handlerEndGame(tas, tokens) :
     while True :
         if sum([list(tas.tas.values())[i] for i in range(NOMBRE_JOUEURS)]) == NOMBRE_JOUEURS*5 :
             break
-        elif [list_tokens[i].vies for i in range(NOMBRE_JOUEURS)].count(0) != 0 : 
+        elif tokens.vies != 0 : 
             break
 
 
@@ -57,7 +57,7 @@ def gameProcess(tas, tokens) :
     pioche = Pioche()
 
     ProcesshandlerEndGame = Process(target = handlerEndGame, args = (tas, tokens))
-    Processsocket = Process(target = socketProcess, args = ())
+    Processsocket = Process(target = socketProcess, args = (tas, tokens, pioche))
 
     Processsocket.start()
     ProcesshandlerEndGame.start()
@@ -79,21 +79,27 @@ def handleMessage(msg, tas, tokens, pioche) : #fonction qui traite le message d'
     
 
 
-def client_handler(s, a) :
+def client_handler(s, a, tas, tokens, pioche) :
     with s :
         data = s.recv(1024)
         msgfromclient = str(data.decode())
-        msgtoclient = handleMessage(msgfromclient)
+        msgtoclient = handleMessage(msgfromclient, tas, tokens, pioche)
         s.send(msgtoclient.encode())
 
         while len(data) :
             s.sendall(data)
             data = s.recv(1024)
             msgfromclient = str(data.decode())
-            msgtoclient = handleMessage(msgfromclient)
+            msgtoclient = handleMessage(msgfromclient, tas, tokens, pioche)
             s.send(msgtoclient.encode())
-            
-def socketProcess() :
+
+def SendCards(s, n, msg, pioche) :
+    for i in range(n) :
+        carte = pioche.piocher()
+        message = msg + " " + carte.numero + " " + carte.couleur
+        s.send(message.encode())
+
+def socketProcess(tas, tokens, pioche) :
     HOST = "localhost"
     PORT = 6666
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket :
@@ -101,10 +107,6 @@ def socketProcess() :
         server_socket.listen(NOMBRE_JOUEURS)
         while True :
             client_socket, address = server_socket.accept()
-            p = Process(target=client_handler, args=(client_socket, address))
+            SendCards(client_socket, 5, "CARD", pioche)
+            p = Process(target=client_handler, args=(client_socket, address, tas, tokens, pioche))
             p.start()
-
-if __name__ == '__main__' :
-    game = Process(target = gameProcess, args = ())
-    game.start()
-    game.join()
