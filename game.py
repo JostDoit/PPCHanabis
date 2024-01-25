@@ -44,6 +44,9 @@ class Tas :
     def ajouter_tas (self, carte) :
         self.tas[carte.couleur] = carte
 
+def handleEndGame():
+    while True
+
 def gameProcess() :
     pioche = Pioche()
     tokens = Tokens()
