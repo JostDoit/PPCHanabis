@@ -2,7 +2,6 @@ import random
 from multiprocessing import Process, Manager
 import socket
 
-NOMBRE_JOUEURS = 3
 couleurs = ["rouge", "vert", "bleu", "jaune", "violet"]
 
 
@@ -12,17 +11,17 @@ class Carte :
         self.couleur = couleur
 
 class Tokens :
-    def __init__(self,manager) :
+    def __init__(self, nb_joueurs, manager) :
         self.vies = manager.Value('i', 3)
-        self.hint = manager.Value('i',NOMBRE_JOUEURS + 3)
+        self.hint = manager.Value('i', nb_joueurs + 3)
         
 class Pioche :
-    def __init__(self) :
+    def __init__(self, nb_joueurs) :
         self.pioche = []
-        self.creer_pioche()
+        self.creer_pioche(nb_joueurs)
 
-    def creer_pioche(self) :
-        for i in range (NOMBRE_JOUEURS) :
+    def creer_pioche(self, nb_joueurs) :
+        for i in range (nb_joueurs) :
             for j in range (5) :
                 if j == 0 :
                     self.pioche += [Carte(j+1, couleurs[i]) for k in range(3)]
@@ -39,25 +38,25 @@ class Pioche :
         return self.pioche.pop()
 
 class Tas :
-    def __init__(self, manager) :
-        self.tas = manager.dict({couleurs[i] : 0 for i in range(NOMBRE_JOUEURS)})
+    def __init__(self, nb_joueurs, manager) :
+        self.tas = manager.dict({couleurs[i] : 0 for i in range(nb_joueurs)})
     
     def ajouter_tas (self, carte) :
         self.tas[carte.couleur] = carte
 
-def handlerEndGame(tas, tokens) :
+def handlerEndGame(nb_joueurs, tas, tokens) :
     while True :
-        if sum([list(tas.tas.values())[i] for i in range(NOMBRE_JOUEURS)]) == NOMBRE_JOUEURS*5 :
+        if sum([list(tas.tas.values())[i] for i in range(nb_joueurs)]) == nb_joueurs*5 :
             break
         elif tokens.vies != 0 : 
             break
 
 
-def gameProcess(tas, tokens) :
-    pioche = Pioche()
+def gameProcess(tas, tokens, nb_joueurs) :
+    pioche = Pioche(nb_joueurs)
 
-    ProcesshandlerEndGame = Process(target = handlerEndGame, args = (tas, tokens))
-    Processsocket = Process(target = socketProcess, args = (tas, tokens, pioche))
+    ProcesshandlerEndGame = Process(target = handlerEndGame, args = (nb_joueurs, tas, tokens))
+    Processsocket = Process(target = socketProcess, args = (nb_joueurs, tas, tokens, pioche))
 
     Processsocket.start()
     ProcesshandlerEndGame.start()
@@ -99,12 +98,12 @@ def SendCards(s, n, msg, pioche) :
         message = msg + " " + carte.numero + " " + carte.couleur
         s.send(message.encode())
 
-def socketProcess(tas, tokens, pioche) :
+def socketProcess(nb_joueurs, tas, tokens, pioche) :
     HOST = "localhost"
     PORT = 6666
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket :
         server_socket.bind((HOST, PORT))
-        server_socket.listen(NOMBRE_JOUEURS)
+        server_socket.listen(nb_joueurs)
         while True :
             client_socket, address = server_socket.accept()
             SendCards(client_socket, 5, "CARD", pioche)
