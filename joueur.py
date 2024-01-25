@@ -138,7 +138,7 @@ class Joueur :
         # Création de la socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as game_socket :
             # Connexion au serveur
-            game_socket.connect(("localhost", 6666))
+            game_socket.connect(("localhost", 6667))
             self.draw_first_hand(game_socket)
             while True :
                 if self.tour :

@@ -3,6 +3,7 @@ import sys
 import joueur
 import game
 from multiprocessing import Process, Manager, Queue
+import time
 
 def clear() :
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -57,6 +58,7 @@ def main():
         # Lancement des processus
         for p in processes:
             p.start()
+            time.sleep(1)
         
         # Attente de la fin des processus
         for p in processes:
