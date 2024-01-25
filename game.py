@@ -1,6 +1,7 @@
 import random
 from multiprocessing import Process, Manager
 import socket
+import time
 
 couleurs = ["rouge", "vert", "bleu", "jaune", "violet"]
 
@@ -97,10 +98,11 @@ def SendCards(s, n, msg, pioche) :
         carte = pioche.piocher()
         message = msg + " " + str(carte.numero) + " " + carte.couleur
         s.send(message.encode())
+        time.sleep(1)
 
 def socketProcess(nb_joueurs, tas, tokens, pioche) :
     HOST = "localhost"
-    PORT = 6667
+    PORT = 6668
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket :
         server_socket.bind((HOST, PORT))
         server_socket.listen(nb_joueurs)

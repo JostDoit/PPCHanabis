@@ -33,7 +33,7 @@ class Joueur :
     
     def draw_card(self, game_socket) :
         """Récupère une carte de la pioche"""
-        data = game_socket.recv(1024).decode().split()        
+        data = game_socket.recv(1024).decode().split()
         new_card = game.Carte(data[1], data[2])
         self.hand.append(new_card)
         self.known_hand.append((False, False))
@@ -138,7 +138,7 @@ class Joueur :
         # Création de la socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as game_socket :
             # Connexion au serveur
-            game_socket.connect(("localhost", 6667))
+            game_socket.connect(("localhost", 6668))
             self.draw_first_hand(game_socket)
             while True :
                 if self.tour :
