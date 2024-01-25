@@ -81,17 +81,18 @@ def handleMessage(msg, tas, tokens, pioche) : #fonction qui traite le message d'
 
 def client_handler(s, a) :
     with s :
-        print("Connected to client: ", a)
         data = s.recv(1024)
-        msg = str(data.decode())
-        handleMessage(msg)
+        msgfromclient = str(data.decode())
+        msgtoclient = handleMessage(msgfromclient)
+        s.send(msgtoclient.encode())
+
         while len(data) :
             s.sendall(data)
             data = s.recv(1024)
-            msg = str(data.decode())
-            handleMessage(msg)
-        print("Disconnecting from client: ", a)
-
+            msgfromclient = str(data.decode())
+            msgtoclient = handleMessage(msgfromclient)
+            s.send(msgtoclient.encode())
+            
 def socketProcess() :
     HOST = "localhost"
     PORT = 6666
