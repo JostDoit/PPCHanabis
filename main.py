@@ -19,7 +19,7 @@ def printTitle() :
     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═════╝ ╚═╝╚══════╝
     """)
 
-def main():
+def main(port):
     printTitle()
     with Manager() as manager:
 
@@ -49,14 +49,14 @@ def main():
 
         # Création des processus
         processes = []
-        processes.append(Process(target = game.gameProcess, args = (tas, tokens, nb_joueurs)))
+        processes.append(Process(target = game.gameProcess, args = (tas, tokens, nb_joueurs, port)))
 
         for player in joueurs:
-            processes.append(Process(target = player.run, args = (tas, tokens, clear)))
+            processes.append(Process(target = player.run, args = (tas, tokens, clear, port)))
         
 
         # Lancement des processus
-        for p in processes[1:]:  # Ne pas utiliser la file d'attente pour le processus principal
+        for p in processes:
             p.start()
             time.sleep(1)
         
@@ -65,4 +65,13 @@ def main():
             p.join()
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print("required index argument missing, terminating.", file=sys.stderr)
+        sys.exit(1)
+    try:
+        port = int(sys.argv[1])
+    except ValueError:
+        print(f"bad index argument: {sys.argv[1]}, terminating.", file=sys.stderr)
+        sys.exit(2)
+
+    main(port)
