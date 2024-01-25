@@ -1,6 +1,7 @@
 import threading
 import socket
 import game
+import sys
 
 class Couleurs :
     """Classe contenant les codes ANSI pour les couleurs"""
@@ -138,7 +139,7 @@ class Joueur :
         # Création de la socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as game_socket :
             # Connexion au serveur
-            game_socket.connect(("localhost", 6667))
+            game_socket.connect(("localhost", 6669))
             self.draw_first_hand(game_socket)
             while True :
                 if self.tour :
@@ -150,15 +151,14 @@ class Joueur :
                     print("Tes cartes :")
                     self.show_hand()
 
-                    choix = ""
+                    choix = " "
                     while choix not in ["1", "2"] :
                         print("C'est à toi de jouer !")
                         print("1 - Jouer une carte")
                         print("2 - Donner un hint")
                         choix = input("Entrez votre choix : ")
                         if choix == "1" :
-                            print("Quelle carte veux-tu jouer ? (de 1 à 5)")
-                            indice_carte_a_jouer = int(input())                            
+                            indice_carte_a_jouer = int(input("Quelle carte veux-tu jouer ? (de 1 à 5)"))                            
                             resultat = self.play_card(indice_carte_a_jouer - 1, game_socket)
                             if resultat == "WRIGHT" :
                                 print("Bonne carte, bien joué !")
