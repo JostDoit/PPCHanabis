@@ -98,7 +98,7 @@ def SendCards(s, n, msg, pioche) :
 
 def socketProcess(nb_joueurs, tas, tokens, pioche) :
     HOST = "localhost"
-    PORT = 6668
+    PORT = 6669
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket :
         server_socket.bind((HOST, PORT))
         server_socket.listen(nb_joueurs)
