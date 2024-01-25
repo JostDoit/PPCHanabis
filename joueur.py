@@ -4,10 +4,9 @@ import game
 
 class Joueur :
     """Classe représentant un joueur de la partie"""
-    def __init__(self) :
-        self.id = 0
-        self.name = ""
-        self.tour = False                
+    def __init__(self, id) :
+        self.id = id
+        self.tour = False
         self.hand = []  # liste des cartes en main, les cartes sont des objets de la classe Carte
         self.known_hand = []
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
