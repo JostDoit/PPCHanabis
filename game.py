@@ -66,16 +66,16 @@ def gameProcess(tas, tokens) :
 
 def handleMessage(msg, tas, tokens, pioche) : #fonction qui traite le message d'un client et qui retourne le message à retourner, "allgood" s'il n'y a rien à renvoyer
     list_msg = msg.split(" ")
-    if list_msg[0] == "poserCarte" :
+    if list_msg[0] == "PLAY" :
         if int(tas.tas[list_msg[2]]) == int(list_msg[1]) - 1 : #si c'est une carte valide
-            tas.tas[list_msg[2]] = int(list_msg[1])
-            pioche.piocher()
-            return 
-            print("bonne carte, bien joué !")
+            tas.tas[list_msg[2]] += 1
+            carte = pioche.piocher()
+            return "RIGHT " + carte.couleur + " " + str(carte.numero)
 
         else : #mauvaise carte, on perd un jeton vie
             tokens.vies -= 1
-            print("mauvaise carte, tu t'es trompé, noobs !")
+            carte = pioche.piocher()
+            return "WRONG " + carte.couleur + " " + str(carte.numero)
     
 
 
