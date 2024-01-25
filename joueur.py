@@ -167,7 +167,6 @@ class Joueur :
                                 print("Bonne carte, bien joué !")
                             elif resultat == "WRONG" :
                                 print("Mauvaise carte, tu t'es trompé, noob !")
-                                tokens.vies -= 1
                             print("Au tour du joueur suivant !")
                             self.tour = False
 
