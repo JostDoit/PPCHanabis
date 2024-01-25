@@ -93,7 +93,7 @@ def SendCards(s, n, msg, pioche) :
         carte = pioche.piocher()
         message = msg + " " + str(carte.numero) + " " + carte.couleur
         s.send(message.encode())
-        time.sleep(1)
+        time.sleep(0.1)
 
 def socketProcess(nb_joueurs, tas, tokens, pioche, port) :
     HOST = "localhost"

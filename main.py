@@ -62,12 +62,12 @@ def main(port):
         # Lancement des processus
         for p in processes:
             p.start()
-            time.sleep(1)
+            time.sleep(0.1)
         
         # Lancement des threads
         for t in threads:
             t.start()
-            time.sleep(1)
+            time.sleep(0.1)
         
         # Attente de la fin des processus
         for p in processes:
