@@ -33,18 +33,18 @@ class Joueur :
     
     def draw_card(self, game_socket) :
         """Récupère une carte de la pioche"""
-        data = game_socket.recv(1024).decode().split()
-        resultat = data[0]
+        data = game_socket.recv(1024).decode().split()        
         new_card = game.Carte(data[1], data[2])
         self.hand.append(new_card)
         self.known_hand.append((False, False))
-        return resultat
+        resultat = data[0]
+        if resultat != "CARD" :
+            return resultat
 
     def draw_first_hand(self, game_socket) :
         """Récupère les 5 premières cartes de la pioche"""
         for _ in range(5) :
             self.draw_card(game_socket)
-            self.known_hand.append((False, False))
 
     def give_hint(self, hint, player_to_hint) :
         """Envoie un hint à un joueur"""
@@ -137,7 +137,9 @@ class Joueur :
         """Fonction principale du joueur"""
         # Création de la socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as game_socket :
-
+            # Connexion au serveur
+            game_socket.connect(("localhost", 6666))
+            self.draw_first_hand(game_socket)
             while True :
                 if self.tour :
                     clear_func()

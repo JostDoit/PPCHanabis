@@ -2,7 +2,7 @@ import os
 import sys
 import joueur
 import game
-from multiprocessing import Process, Manager
+from multiprocessing import Process, Manager, Queue
 
 def clear() :
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -35,8 +35,15 @@ def main():
         
         joueurs = []
         for i in range(nb_joueurs):
-            joueurs.append(joueur.Joueur(i, tas, tokens))
+            joueurs.append(joueur.Joueur(i))
         joueurs[0].tour = True
+
+        # Création des queues
+        for joueur in joueurs:
+            for other_joueur in joueurs:
+                if joueur.id != other_joueur.id:
+                    joueur.message_queue_in[other_joueur.id] = Queue()
+                    joueur.message_queue_out[other_joueur.id] = Queue()
 
         # Création des processus        
         processes = [Process(target = joueurs[i].run, args = (tas, tokens, clear)) for i in range(nb_joueurs)]
