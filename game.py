@@ -3,7 +3,8 @@ from multiprocessing import Process, Manager
 import socket
 
 NOMBRE_JOUEURS = 3
-couleurs = ["rouge", "vert", "bleu", "jaune", "blanc"]
+
+couleurs = ["rouge", "vert", "bleu", "jaune", "violet"]
 
 
 class Carte :
@@ -20,7 +21,7 @@ class Pioche :
     def __init__(self) :
         self.pioche = []
         self.creer_pioche()
-    
+
     def creer_pioche(self) :
         for i in range (NOMBRE_JOUEURS) :
             for j in range (5) :
@@ -55,10 +56,53 @@ def handlerEndGame(tas, list_tokens):
 
 def gameProcess(tas, tokens) :
     pioche = Pioche()
+
     ProcesshandlerEndGame = Process(target = handlerEndGame, args = (tas, tokens))
+    Processsocket = Process(target = socketProcess, args = ())
+
+    Processsocket.start()
     ProcesshandlerEndGame.start()
+
     ProcesshandlerEndGame.join()
 
+def handleMessage(msg, tas, tokens, pioche) : #fonction qui traite le message d'un client et qui retourne le message à retourner, "allgood" s'il n'y a rien à renvoyer
+    list_msg = msg.split(" ")
+    if list_msg[0] == "poserCarte" :
+        if int(tas.tas[list_msg[2]]) == int(list_msg[1]) - 1 : #si c'est une carte valide
+            tas.tas[list_msg[2]] = int(list_msg[1])
+            pioche.piocher()
+            return 
+            print("bonne carte, bien joué !")
+
+        else : #mauvaise carte, on perd un jeton vie
+            tokens.vies -= 1
+            print("mauvaise carte, tu t'es trompé, noobs !")
+    
+
+
+def client_handler(s, a) :
+    with s :
+        print("Connected to client: ", a)
+        data = s.recv(1024)
+        msg = str(data.decode())
+        handleMessage(msg)
+        while len(data) :
+            s.sendall(data)
+            data = s.recv(1024)
+            msg = str(data.decode())
+            handleMessage(msg)
+        print("Disconnecting from client: ", a)
+
+def socketProcess() :
+    HOST = "localhost"
+    PORT = 6666
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket :
+        server_socket.bind((HOST, PORT))
+        server_socket.listen(NOMBRE_JOUEURS)
+        while True :
+            client_socket, address = server_socket.accept()
+            p = Process(target=client_handler, args=(client_socket, address))
+            p.start()
 
 if __name__ == '__main__' :
     game = Process(target = gameProcess, args = ())
