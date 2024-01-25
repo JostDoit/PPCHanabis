@@ -31,7 +31,7 @@ def main():
                 nb_joueurs = 0
 
         # Initialisation des objets de la partie
-        tas = game.Tas(manager)
+        tas = game.Tas(nb_joueurs, manager)
         tokens = game.Tokens(nb_joueurs, manager)
         
         joueurs = []
