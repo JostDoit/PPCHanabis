@@ -36,9 +36,10 @@ def main():
         joueurs = []
         for i in range(nb_joueurs):
             joueurs.append(joueur.Joueur(i, tas, tokens))
+        joueurs[0].tour = True
 
         # Création des processus        
-        processes = [Process(target = joueurs[i].run, args = ()) for i in range(nb_joueurs)]
+        processes = [Process(target = joueurs[i].run, args = (tas, tokens, clear)) for i in range(nb_joueurs)]
         processes.append(Process(target = game.gameProcess, args = (tas, tokens)))
 
         # Lancement des processus

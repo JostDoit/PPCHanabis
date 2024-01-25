@@ -2,6 +2,15 @@ import threading
 import socket
 import game
 
+class Couleurs :
+    """Classe contenant les codes ANSI pour les couleurs"""
+    RESET = '\033[0m'
+    ROUGE = '\033[91m'
+    VERT = '\033[92m'
+    BLEU = '\033[94m'
+    JAUNE = '\033[93m'
+    VIOLET = '\033[95m'
+
 class Joueur :
     """Classe représentant un joueur de la partie"""
     def __init__(self, id) :
@@ -9,7 +18,6 @@ class Joueur :
         self.tour = False
         self.hand = []  # liste des cartes en main, les cartes sont des objets de la classe Carte
         self.known_hand = []
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.message_queues_in = {} # Dictionnaire contenant les Message queue pour les messages entrants entre les joueurs
         self.message_queues_out = {} # Dictionnaire contenant les Message queue pour les messages sortants entre les joueurs
     
@@ -46,3 +54,126 @@ class Joueur :
             for i in range(5) :
                 if self.hand[i].numero == received_hint[1] :
                     self.known_hand[i][1] = True
+    
+    def print_en_couleur(self, texte, couleur):
+        if couleur == "" :
+            couleur = Couleurs.RESET
+        elif couleur == "rouge" :
+            couleur = Couleurs.ROUGE
+        elif couleur == "vert" :
+            couleur = Couleurs.VERT
+        elif couleur == "bleu" :
+            couleur = Couleurs.BLEU
+        elif couleur == "jaune" :
+            couleur = Couleurs.JAUNE
+        elif couleur == "violet" :
+            couleur = Couleurs.VIOLET
+        print(f"{couleur}{texte}{Couleurs.RESET}", end="")
+    
+    def is_couleur_carte_known(self, indice) :
+        """Renvoie la couleur de la carte si elle est connue, sinon renvoie "" """
+        if self.known_hand[indice][1] :
+            return self.hand[indice].couleur
+        else :
+            return ""
+    
+    def show_hand(self) :
+        """Affiche la main du joueur"""
+        for i in range(5) :
+            self.print_en_couleur("┌───────┐ ", self.is_couleur_carte_known(i))
+        print()       
+            
+        for i in range(5) :
+            self.print_en_couleur("|       | ", self.is_couleur_carte_known(i))
+        print()
+        
+        for i in range(5) :
+            valeur_carte = "?"
+            if self.known_hand[i][0] :
+                valeur_carte = self.hand[i].numero
+            self.print_en_couleur(f"|   {valeur_carte}   | ", self.is_couleur_carte_known(i))
+        print()
+        
+        for i in range(5) :
+            self.print_en_couleur("|       | ", self.is_couleur_carte_known(i))
+        print()
+        
+        for i in range(5) :
+            self.print_en_couleur("└───────┘ ", self.is_couleur_carte_known(i))
+        print()
+        print()
+    
+    def show_tas(self, tas) :
+        """Affiche le tas"""
+        for couleur in tas.tas.keys() :
+            self.print_en_couleur("┌───────┐ ", couleur)
+        print()
+        
+        for couleur in tas.tas.keys() :
+            self.print_en_couleur("|       | ", couleur)
+        print()
+        
+        for couleur in tas.tas.keys() :            
+            self.print_en_couleur(f"|   {tas.tas[couleur]}   | ", couleur)
+        print()
+        
+        for couleur in tas.tas.keys() :
+            self.print_en_couleur("|       | ", couleur)
+        print()
+        
+        for couleur in tas.tas.keys() :
+            self.print_en_couleur("└───────┘ ", couleur)
+        print()
+        print()
+    
+    def run(self, tas, tokens, clear_func) :
+        """Fonction principale du joueur"""
+        # Création de la socket
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as game_socket :
+
+            while True :
+                if self.tour :
+                    clear_func()
+                    print("Joueur", self.id, "à ton tour !")
+                    print(f"Il vous reste acctuellement {tokens.vies.value} vies et {tokens.hint.value} hints disponibles.")
+                    print("Voici le tas :")
+                    self.show_tas(tas)
+                    print("Tes cartes :")
+                    self.show_hand()
+
+                    choix = ""
+                    while choix not in ["1", "2"] :
+                        print("C'est à toi de jouer !")
+                        print("1 - Jouer une carte")
+                        print("2 - Donner un hint")
+                        choix = input("Entrez votre choix : ")
+                        if choix == "1" :
+                            print("Quelle carte veux-tu jouer ? (de 1 à 5)")
+                            indice_carte_a_jouer = int(input())
+                            carte_a_jouer = self.hand[indice_carte_a_jouer-1]
+                            self.play_card(carte_a_jouer, game_socket)
+
+                        elif choix == "2" :
+                            print("Entrez le numéro du joueur à qui donner le hint")
+                            numero_joueur = int(input())
+                            print("Entrez le type de hint (color ou number)")
+                            type_hint = input()
+                            if type_hint == "color" :
+                                print("Entrez la couleur du hint (rouge, vert, bleu, jaune ou violet)")
+                                valeur_hint = input()
+                                hint = " ".join(map(str, (type_hint, valeur_hint)))
+                                self.give_hint(hint, numero_joueur)
+                            elif type_hint == "number" :
+                                print("Entrez le numéro du hint (de 1 à 5)")
+                                valeur_hint = int(input())
+                                hint = " ".join(map(str, (type_hint, valeur_hint)))
+                                self.give_hint(hint, numero_joueur)
+                        else :
+                            print("Choix invalide")
+                else :
+                    
+
+
+        
+if __name__ == "__main__" :
+    pass

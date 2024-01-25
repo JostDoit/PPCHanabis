@@ -3,7 +3,7 @@ from multiprocessing import Process, Manager
 import socket
 
 NOMBRE_JOUEURS = 3
-couleurs = ["rouge", "vert", "bleu", "jaune", "blanc"]
+couleurs = ["rouge", "vert", "bleu", "jaune", "violet"]
 
 
 class Carte :
