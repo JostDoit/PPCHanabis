@@ -82,10 +82,6 @@ def handleMessage(msg, tas, tokens, pioche) : #fonction qui traite le message d'
 def client_handler(s, a, tas, tokens, pioche) :
     with s :
         data = s.recv(1024)
-        msgfromclient = str(data.decode())
-        msgtoclient = handleMessage(msgfromclient, tas, tokens, pioche)
-        s.send(msgtoclient.encode())
-
         while len(data) :
             s.sendall(data)
             data = s.recv(1024)
