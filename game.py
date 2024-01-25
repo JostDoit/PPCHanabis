@@ -100,7 +100,7 @@ def SendCards(s, n, msg, pioche) :
 
 def socketProcess(nb_joueurs, tas, tokens, pioche) :
     HOST = "localhost"
-    PORT = 6666
+    PORT = 6667
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket :
         server_socket.bind((HOST, PORT))
         server_socket.listen(nb_joueurs)
@@ -121,4 +121,3 @@ if __name__ == "__main__" :
         print(tokens.vies)
         print(tokens.hint)
 
-        
