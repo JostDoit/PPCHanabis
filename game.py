@@ -109,3 +109,16 @@ def socketProcess(nb_joueurs, tas, tokens, pioche) :
             SendCards(client_socket, 5, "CARD", pioche)
             p = Process(target=client_handler, args=(client_socket, address, tas, tokens, pioche))
             p.start()
+
+
+if __name__ == "__main__" :
+    with Manager() as manager :
+        tas = Tas(3, manager)
+        tokens = Tokens(3, manager)
+        pioche = Pioche(3)
+        gameProcess(tas, tokens, 3)
+        print(tas.tas)
+        print(tokens.vies)
+        print(tokens.hint)
+
+        
