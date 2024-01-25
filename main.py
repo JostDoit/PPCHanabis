@@ -39,15 +39,17 @@ def main():
         joueurs[0].tour = True
 
         # Création des queues
-        for joueur in joueurs:
+        for player in joueurs:
             for other_joueur in joueurs:
-                if joueur.id != other_joueur.id:
-                    joueur.message_queue_in[other_joueur.id] = Queue()
-                    joueur.message_queue_out[other_joueur.id] = Queue()
+                if player.id != other_joueur.id:
+                    player.message_queues_in[other_joueur.id] = Queue()
+                    player.message_queues_out[other_joueur.id] = Queue()
 
-        # Création des processus        
-        processes = [Process(target = joueurs[i].run, args = (tas, tokens, clear)) for i in range(nb_joueurs)]
+        # Création des processus
+        processes = []
         processes.append(Process(target = game.gameProcess, args = (tas, tokens)))
+        processes = [Process(target = joueurs[i].run, args = (tas, tokens, clear)) for i in range(nb_joueurs)]
+        
 
         # Lancement des processus
         for p in processes:
