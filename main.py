@@ -56,7 +56,7 @@ def main():
         
 
         # Lancement des processus
-        for p in processes:
+        for p in processes[1:]:  # Ne pas utiliser la file d'attente pour le processus principal
             p.start()
             time.sleep(1)
         
