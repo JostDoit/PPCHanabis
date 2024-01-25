@@ -21,9 +21,6 @@ def printTitle() :
 def main():
     printTitle()
     with Manager() as manager:
-        # Initialisation des objets de la partie
-        tas = game.Tas(manager)
-        tokens = game.Tokens(manager)
 
         # Création des joueurs
         nb_joueurs = 0
@@ -32,6 +29,10 @@ def main():
                 nb_joueurs = int(input("Entrez le nombre de joueurs (entre 2 à 5) : "))
             except ValueError :
                 nb_joueurs = 0
+
+        # Initialisation des objets de la partie
+        tas = game.Tas(manager)
+        tokens = game.Tokens(nb_joueurs, manager)
         
         joueurs = []
         for i in range(nb_joueurs):
@@ -47,7 +48,7 @@ def main():
 
         # Création des processus
         processes = []
-        processes.append(Process(target = game.gameProcess, args = (tas, tokens)))
+        processes.append(Process(target = game.gameProcess, args = (tas, tokens, nb_joueurs)))
         processes = [Process(target = joueurs[i].run, args = (tas, tokens, clear)) for i in range(nb_joueurs)]
         
 
