@@ -11,7 +11,7 @@ class Carte :
         self.couleur = couleur
 
 class Tokens :
-    def __init__(self,manager) : 
+    def __init__(self,manager) :
         self.vies = manager.Value('i', 3)
         self.hint = manager.Value('i',NOMBRE_JOUEURS + 3)
         
@@ -44,12 +44,22 @@ class Tas :
     def ajouter_tas (self, carte) :
         self.tas[carte.couleur] = carte
 
-def handleEndGame():
-    while True
+def handlerEndGame(tas, list_tokens):
+    while True :
+        if sum([list(tas.tas.values())[i] for i in range(NOMBRE_JOUEURS)]) == 5*NOMBRE_JOUEURS :
+            None #fin du jeu : le tas est finito pipo
+        elif [list_tokens[i].vies for i in range(NOMBRE_JOUEURS)].count(0) != 0 : 
+            None #fin du jeu : un des joueurs n'a plus de vies, cest ciao
+
 
 def gameProcess() :
-    pioche = Pioche()
-    tokens = Tokens()
+    with Manager() as manager :
+        pioche = Pioche()
+        list_tokens = manager.list([Tokens(manager) for i in range(NOMBRE_JOUEURS)])
+        tas = Tas(manager)
+        ProcesshandlerEndGame = Process(target = handlerEndGame, args = (tas, list_tokens))
+        ProcesshandlerEndGame.start()
+
 
 if __name__ == '__main__' :
     game = Process(target = gameProcess, args = ())
