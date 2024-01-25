@@ -26,6 +26,7 @@ class Joueur :
         """Envoie au serveur la carte à jouer"""
         card_to_play = self.hand[indice_card_to_play]
         message = "PLAY " + " ".join(map(str, (card_to_play.numero, card_to_play.couleur)))
+        print(f"message : {message}")
         game_socket.sendall(message.encode())
         del self.known_hand[indice_card_to_play]
         del self.hand[indice_card_to_play]
@@ -35,6 +36,7 @@ class Joueur :
     def draw_card(self, game_socket) :
         """Récupère une carte de la pioche"""
         data = game_socket.recv(1024).decode().split()
+        print(data)
         new_card = game.Carte(data[1], data[2])
         self.hand.append(new_card)
         self.known_hand.append((False, False))
@@ -158,8 +160,9 @@ class Joueur :
                         print("2 - Donner un hint")
                         choix = input("Entrez votre choix : ")
                         if choix == "1" :
-                            indice_carte_a_jouer = int(input("Quelle carte veux-tu jouer ? (de 1 à 5)"))                            
+                            indice_carte_a_jouer = int(input("Quelle carte veux-tu jouer ? (de 1 à 5) : "))                            
                             resultat = self.play_card(indice_carte_a_jouer - 1, game_socket)
+                            print(resultat)
                             if resultat == "WRIGHT" :
                                 print("Bonne carte, bien joué !")
                             elif resultat == "WRONG" :

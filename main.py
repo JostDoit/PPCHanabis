@@ -4,6 +4,7 @@ import joueur
 import game
 from multiprocessing import Process, Manager, Queue
 import time
+import threading
 
 def clear() :
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -50,14 +51,22 @@ def main():
         # Création des processus
         processes = []
         processes.append(Process(target = game.gameProcess, args = (tas, tokens, nb_joueurs)))
+        
 
+        threads = []
+        # Création des threads joueurs
         for player in joueurs:
-            processes.append(Process(target = player.run, args = (tas, tokens, clear)))
+            threads.append(threading.Thread(target = player.run, args = (tas, tokens, clear)))
         
 
         # Lancement des processus
         for p in processes:
             p.start()
+            time.sleep(1)
+        
+        # Lancement des threads
+        for t in threads:
+            t.start()
             time.sleep(1)
         
         # Attente de la fin des processus
