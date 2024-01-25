@@ -1,5 +1,6 @@
 import threading
 import socket
+import game
 
 class Joueur :
     """Classe représentant un joueur de la partie"""
@@ -8,42 +9,41 @@ class Joueur :
         self.name = ""
         self.tour = False                
         self.hand = []  # liste des cartes en main, les cartes sont des objets de la classe Carte
+        self.known_hand = []
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.message_queues_in = {} # Dictionnaire contenant les Message queue pour les messages entrants entre les joueurs
         self.message_queues_out = {} # Dictionnaire contenant les Message queue pour les messages sortants entre les joueurs
     
-    def connect_to_game(self, ip, port, methode) :
-        """Se connecte à la partie"""
-        with self.socket as joueur_socket :
-            # Connection au serveur
-            joueur_socket.connect((ip, port))
-            
-    
     def play_card(self, card_to_play, game_socket) :
         """Envoie au serveur la carte à jouer"""
-        message = "PLAY " + " ".join(map(str, card_to_play))
+        message = "PLAY " + " ".join(map(str, (card_to_play.numero, card_to_play.couleur)))
         game_socket.sendall(message.encode())
+        self.hand.remove(card_to_play)
     
     def draw_card(self, game_socket) :
         """Récupère une carte de la pioche"""
-        data = game_socket.recv(1024).decode()
-        
+        data = game_socket.recv(1024).decode().split()
+        new_card = game.Carte(data[0], data[1])
+        self.hand.append(new_card)
 
-    def hint(self, hint, player_to_hint) :
-        pass
-    
-    def get_action(self) :
-        """Thread qui attend une action du joueur"""
-        
-        pass
+    def draw_first_hand(self, game_socket) :
+        """Récupère les 5 premières cartes de la pioche"""
+        for _ in range(5) :
+            self.draw_card(game_socket)
+            self.known_hand.append((False, False))
 
-    def get_ohter_player_real_hand(self, player) :
-        pass
+    def give_hint(self, hint, player_to_hint) :
+        """Envoie un hint à un joueur"""
+        self.message_queues_out[player_to_hint].put(hint)
 
-    def get_other_player_known_hand(self, player) :
-        pass
-
-    def get_suits_in_construction(self) :
-        pass
-
-    
+    def receive_hint(self, hint, player_who_hinted) :
+        """Reçoit un hint d'un joueur"""
+        received_hint = self.message_queues_in[player_who_hinted].get().split()
+        if received_hint[0] == "COLOR" :
+            for i in range(5) :
+                if self.hand[i].couleur == received_hint[1] :
+                    self.known_hand[i][0] = True
+        else :
+            for i in range(5) :
+                if self.hand[i].numero == received_hint[1] :
+                    self.known_hand[i][1] = True
