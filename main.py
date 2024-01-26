@@ -7,6 +7,7 @@ import time
 import threading
 
 def clear() :
+    # Permet de nettoyer la console au lancement du jeu et entre chaque tour (windows et linux)
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def printTitle() :
@@ -24,23 +25,25 @@ def main(port):
     printTitle()
     with Manager() as manager:
 
-        # Création des joueurs
+        # Demande du nombre de joueurs
         nb_joueurs = 0
         while nb_joueurs < 2 or nb_joueurs > 5 :
             try :
                 nb_joueurs = int(input("Entrez le nombre de joueurs (entre 2 à 5) : "))
             except ValueError :
                 nb_joueurs = 0
-
-        # Initialisation des objets de la partie
-        tas = game.Tas(nb_joueurs, manager)
-        tokens = game.Tokens(nb_joueurs, manager)
+                print("Veuillez entrer un nombre valide")        
         
+        # Création des joueurs
         joueurs = []
         for i in range(nb_joueurs):
             joueurs.append(joueur.Joueur(i, nb_joueurs))
         joueurs[0].tour = True
 
+        # Initialisation des objets partagés de la partie
+        tas = game.Tas(nb_joueurs, manager)
+        tokens = game.Tokens(nb_joueurs, manager)
+        
         # Création des queues
         for i in range(nb_joueurs):
             for j in range(nb_joueurs):
@@ -50,30 +53,26 @@ def main(port):
                     joueurs[j].message_queues_in[i] = q
                     
 
-        # Création des processus
-        processes = []
-        processes.append(Process(target = game.gameProcess, args = (tas, tokens, nb_joueurs, port)))
+        # Création du processus de jeu
+        game = Process(target = game.gameProcess, args = (tas, tokens, nb_joueurs, port))
         
-
-        threads = []
         # Création des threads joueurs
+        threads = []        
         for player in joueurs:
             threads.append(threading.Thread(target = player.run, args = (tas, tokens, clear, port)))
         
 
-        # Lancement des processus
-        for p in processes:
-            p.start()
-            time.sleep(0.1)
-        
-        # Lancement des threads
+        # Lancement du processus de jeu et des threads joueurs
+        game.start()
         for t in threads:
             t.start()
-            time.sleep(0.1)
         
-        # Attente de la fin des processus
-        for p in processes:
-            p.join()
+        # Attente de la fin du processus de jeu et des threads joueurs
+        game.join()
+        for t in threads:
+            t.join()
+
+    
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
