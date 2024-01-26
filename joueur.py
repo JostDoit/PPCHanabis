@@ -14,11 +14,12 @@ class Couleurs :
 
 class Joueur :
     """Classe représentant un joueur de la partie"""
-    def __init__(self, id) :
+    def __init__(self, id, nb_joueurs) :
         self.id = id
         self.tour = False
-        self.hand = []  # liste des cartes en main, les cartes sont des objets de la classe Carte
-        self.known_hand = []
+        self.nb_joueurs = nb_joueurs
+        self.hand = {}  # liste des cartes en main, les cartes sont des objets de la classe Carte
+        self.known_hand = {}
         self.message_queues_in = {} # Dictionnaire contenant les Message queue pour les messages entrants entre les joueurs
         self.message_queues_out = {} # Dictionnaire contenant les Message queue pour les messages sortants entre les joueurs
     
@@ -27,8 +28,8 @@ class Joueur :
         card_to_play = self.hand[indice_card_to_play]
         message = "PLAY " + " ".join(map(str, (card_to_play.numero, card_to_play.couleur)))
         game_socket.sendall(message.encode())
-        del self.known_hand[indice_card_to_play]
-        del self.hand[indice_card_to_play]
+        del self.known_hand[self.id][indice_card_to_play]
+        del self.hand[self.id][indice_card_to_play]
         return self.draw_card(game_socket)
         
     
@@ -36,8 +37,8 @@ class Joueur :
         """Récupère une carte de la pioche"""
         data = game_socket.recv(1024).decode().split()
         new_card = game.Carte(data[1], data[2])
-        self.hand.append(new_card)
-        self.known_hand.append((False, False))
+        self.hand[self.id].append(new_card)
+        self.known_hand[self.id].append((False, False))
         resultat = data[0]
         if resultat != "CARD" :
             return resultat
@@ -46,10 +47,31 @@ class Joueur :
         """Récupère les 5 premières cartes de la pioche"""
         for _ in range(5) :
             self.draw_card(game_socket)
+        
+        for i in range(self.nb_joueurs) :
+            self.known_hand[i] = []
+            for _ in range(5) :
+                self.known_hand[i].append((False, False))
+            
+    
+    def get_other_players_hands(self) :
+        """Récupère les mains des autres joueurs"""
+        for message_queue in self.message_queues_in.values() :
+            for _ in range(5) :
+                message = message_queue.get().split()
+                self.hand[int(message[1])] = game.Carte(message[2], message[3])
+    
+    def show_my_hand_to_other(self) :
+        """Envoie sa main aux autres joueurs"""
+        for i in range(self.nb_joueurs) :
+            for j in range(5) :
+                message = " ".join(map(str, ("HAND", self.id, self.hand[j].couleur, self.hand[j].numero)))
+                self.message_queues_out[i].put(message)
 
-    def give_hint(self, hint, player_to_hint) :
+    def give_hint(self, hint) :
         """Envoie un hint à un joueur"""
-        self.message_queues_out[player_to_hint].put(hint)
+        for message_queue in self.message_queues_out.values() :
+            message_queue.put(hint)
 
     def receive_hint(self, hint, player_who_hinted) :
         """Reçoit un hint d'un joueur"""
@@ -150,6 +172,8 @@ class Joueur :
                     self.show_tas(tas)
                     print("Tes cartes :")
                     self.show_hand()
+                    print("Les cartes des autres joueurs :")
+                    self.show_other_players_hands()
 
                     choix = " "
                     while choix not in ["1", "2"] :
@@ -173,12 +197,15 @@ class Joueur :
                             type_hint = input("Entrez le type de hint (color ou number) : ")
                             if type_hint == "color" :                                
                                 valeur_hint = input("Entrez la couleur du hint (rouge, vert, bleu, jaune ou violet) : ")
-                                hint = " ".join(map(str, (type_hint, valeur_hint)))
-                                self.give_hint(hint, numero_joueur)
+                                hint = " ".join(map(str, ("COLOR", valeur_hint, numero_joueur)))
+                                self.give_hint(hint)
+
                             elif type_hint == "number" :
                                 valeur_hint = int(input("Entrez le numéro du hint (de 1 à 5) : "))
-                                hint = " ".join(map(str, (type_hint, valeur_hint)))
-                                self.give_hint(hint, numero_joueur)
+                                hint = " ".join(map(str, ("NUMBER", valeur_hint, numero_joueur)))
+                                self.give_hint(hint)
+                            
+                            self.tour = False
                         else :
                             print("Choix invalide")
                     
