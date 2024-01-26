@@ -164,6 +164,8 @@ class Joueur :
             # Connexion au serveur
             game_socket.connect(("localhost", port))
             self.draw_first_hand(game_socket)
+            self.show_my_hand_to_other()
+            self.get_other_players_hands()
             while True :
                 if self.tour :
                     clear_func()
