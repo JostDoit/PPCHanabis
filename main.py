@@ -1,7 +1,7 @@
 import os
 import sys
 import joueur
-import game
+import game_objects
 from multiprocessing import Process, Manager, Queue
 import time
 import threading
@@ -41,8 +41,8 @@ def main(port):
         joueurs[0].tour = True
 
         # Initialisation des objets partagés de la partie
-        tas = game.Tas(nb_joueurs, manager)
-        tokens = game.Tokens(nb_joueurs, manager)
+        tas = game_objects.Tas(nb_joueurs, manager)
+        tokens = game_objects.Tokens(nb_joueurs, manager)
         
         # Création des queues
         for i in range(nb_joueurs):
@@ -54,7 +54,7 @@ def main(port):
                     
 
         # Création du processus de jeu
-        game = Process(target = game.gameProcess, args = (tas, tokens, nb_joueurs, port))
+        game = Process(target = game_objects.gameProcess, args = (tas, tokens, nb_joueurs, port))
         
         # Création des threads joueurs
         threads = []        

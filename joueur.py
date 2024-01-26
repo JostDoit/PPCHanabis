@@ -1,7 +1,8 @@
 import threading
 import socket
-import game
+import game_objects
 import sys
+import time
 
 class Couleurs :
     """Classe contenant les codes ANSI pour les couleurs"""
@@ -15,17 +16,17 @@ class Couleurs :
 class Joueur :
     """Classe représentant un joueur de la partie"""
     def __init__(self, id, nb_joueurs) :
-        self.id = id
-        self.tour = False
-        self.nb_joueurs = nb_joueurs
-        self.hand = {}  # liste des cartes en main, les cartes sont des objets de la classe Carte
-        self.known_hand = {}
-        self.message_queues_in = {} # Dictionnaire contenant les Message queue pour les messages entrants entre les joueurs
-        self.message_queues_out = {} # Dictionnaire contenant les Message queue pour les messages sortants entre les joueurs
+        self.id = id    # id du joueur
+        self.tour = False   # booléen indiquant si c'est le tour du joueur
+        self.nb_joueurs = nb_joueurs    # nombre de joueurs dans la partie
+        self.hand = {}  # dictionnaire contenant les mains des joueurs, les cles etant l'id d'un joueur et la valeur une liste contenant les cartes (des objets Carte)
+        self.known_hand = {}    # dictionnaire contenant les informations que possède chaque joueur sur sa main, les cles etant l'id d'un joueur et la valeur une liste contenant des tuples (bool, bool) indiquant si la couleur et/ou le numero de la carte est connu
+        self.message_queues_in = {} # Dictionnaire contenant les Message queue pour les messages entrants entre les joueurs, les cles etant l'id d'un joueur et la valeur une Message queue
+        self.message_queues_out = {} # Dictionnaire contenant les Message queue pour les messages sortants entre les joueurs, les cles etant l'id d'un joueur et la valeur une Message queue
     
     def play_card(self, indice_card_to_play, game_socket) :
         """Envoie au serveur la carte à jouer"""
-        card_to_play = self.hand[indice_card_to_play]
+        card_to_play = self.hand[self.id][indice_card_to_play]
         message = "PLAY " + " ".join(map(str, (card_to_play.numero, card_to_play.couleur)))
         game_socket.sendall(message.encode())
         del self.known_hand[self.id][indice_card_to_play]
@@ -36,10 +37,11 @@ class Joueur :
     def draw_card(self, game_socket) :
         """Récupère une carte de la pioche"""
         data = game_socket.recv(1024).decode().split()
-        new_card = game.Carte(data[1], data[2])
-        self.hand[self.id].append(new_card)
-        self.known_hand[self.id].append((False, False))
+        new_card = game_objects.Carte(data[1], data[2])
+        self.hand[self.id].insert(0, new_card)
+        self.known_hand[self.id].insert(0, (False, False))
         resultat = data[0]
+        # Test s'il s'agit d'une carte piochée au début du jeu ou après un PLAY
         if resultat != "CARD" :
             return resultat
 
@@ -63,7 +65,7 @@ class Joueur :
             for _ in range(5) :
                 message = message_queue.get().split()
                 print(message)
-                self.hand[id].append(game.Carte(message[1], message[2]))
+                self.hand[id].append(game_objects.Carte(message[1], message[2]))
     
     def show_my_hand_to_other(self) :
         """Envoie sa main aux autres joueurs"""
@@ -164,15 +166,31 @@ class Joueur :
     
     def run(self, tas, tokens, clear_func, port) :
         """Fonction principale du joueur"""
-        # Création de la socket
+        # Création de la socket du joueur
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as game_socket :
             # Connexion au serveur
-            game_socket.connect(("localhost", port))
+            connexion_try = 10
+            while connexion_try > 0 :
+                try :
+                    game_socket.connect(("localhost", port))
+                    break
+                except ConnectionRefusedError :
+                    connexion_try -= 1
+                    time.sleep(0.01)
+            if connexion_try == 0 :
+                print("Connexion au serveur impossible")
+                sys.exit(1)
+            
+            # Piche des premières cartes
             self.draw_first_hand(game_socket)
+            
+            # Envoie de la main aux autres joueurs
             self.show_my_hand_to_other()
-            print("Attente des autres joueurs...")
+
+            # Récupération des mains des autres joueurs
             self.get_other_players_hands()
-            print("Tout le monde est là, la partie peut commencer !")
+            
+            # Boucle d'un tour de jeu
             while True :
                 if self.tour :
                     clear_func()
