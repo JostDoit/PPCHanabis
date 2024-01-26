@@ -42,11 +42,13 @@ def main(port):
         joueurs[0].tour = True
 
         # Création des queues
-        for player in joueurs:
-            for other_joueur in joueurs:
-                if player.id != other_joueur.id:
-                    player.message_queues_in[other_joueur.id] = Queue()
-                    player.message_queues_out[other_joueur.id] = Queue()
+        for i in range(nb_joueurs):
+            for j in range(nb_joueurs):
+                if i != j:
+                    q = Queue()
+                    joueurs[i].message_queues_out[j] = q
+                    joueurs[j].message_queues_in[i] = q
+                    
 
         # Création des processus
         processes = []
