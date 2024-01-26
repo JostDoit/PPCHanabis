@@ -64,47 +64,40 @@ def gameProcess(tas, tokens, nb_joueurs, port) :
 
     ProcesshandlerEndGame.join()
 
-def handleMessage(msg, tas, tokens, pioche) : #fonction qui traite le message d'un client et qui retourne le message à retourner, "allgood" s'il n'y a rien à renvoyer
+def handleMessage(s, msg, tas, tokens, pioche) : #fonction qui traite le message d'un client et qui retourne le message à retourner, "allgood" s'il n'y a rien à renvoyer
     list_msg = msg.split(" ")
     if list_msg[0] == "PLAY" :
         if int(tas.tas[list_msg[2]]) == int(list_msg[1]) - 1 : #si c'est une carte valide
             tas.tas[list_msg[2]] += 1
-            carte = pioche.piocher()
-            return "RIGHT " + carte.couleur + " " + str(carte.numero)
+            SendCards(s, 1, "RIGHT", pioche)
 
         else : #mauvaise carte, on perd un jeton vie
             tokens.vies.value -= 1
-            carte = pioche.piocher()
-            return "WRONG " + carte.couleur + " " + str(carte.numero)
-    
+            SendCards(s, 1, "WRONG", pioche)
 
-
-def client_handler(s, a, tas, tokens, pioche) :
+def client_handler(s, tas, tokens, pioche) :
     with s :
         data = s.recv(1024)
-        while len(data) :            
+        while len(data) :
             msgfromclient = str(data.decode())
-            msgtoclient = handleMessage(msgfromclient, tas, tokens, pioche)
-            s.send(msgtoclient.encode())
+            handleMessage(s, msgfromclient, tas, tokens, pioche)
             data = s.recv(1024)
 
 def SendCards(s, n, msg, pioche) :
-    for i in range(n) :
+    for _ in range(n) :
         carte = pioche.piocher()
         message = msg + " " + str(carte.numero) + " " + carte.couleur
         s.send(message.encode())
         time.sleep(0.1)
 
 def socketProcess(nb_joueurs, tas, tokens, pioche, port) :
-    HOST = "localhost"
-    PORT = port
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket :
-        server_socket.bind((HOST, PORT))
+        server_socket.bind(("localhost", port))
         server_socket.listen(nb_joueurs)
         while True :
             client_socket, address = server_socket.accept()
             SendCards(client_socket, 5, "CARD", pioche)
-            p = Process(target=client_handler, args=(client_socket, address, tas, tokens, pioche))
+            p = Process(target=client_handler, args=(client_socket, tas, tokens, pioche))
             p.start()
 
 
