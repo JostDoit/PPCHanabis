@@ -84,6 +84,18 @@ class Joueur :
         for message_queue in self.message_queues_out.values() :
             message_queue.put(hint)
     
+    def notify_turn(self, id_joueur) :
+        """Préviens un autre joueur que c'est son tour"""
+        self.message_queues_out[id_joueur].put("TURN")
+    
+    def end_turn(self) :
+        """Fin du tour du joueur"""
+        player_to_notify = (self.id + 1) % self.nb_joueurs
+        print(f"Au tour du joueur {player_to_notify} !\n")
+        input("Appuyez sur entrée pour lancer le tour du joueur suivant...")            
+        self.tour = False
+        self.notify_turn(player_to_notify)
+    
     def handle_message_queues_in(self) :
         """Crée les handlers pour les messages entrants"""
         message_queue_in_handlers = []
@@ -98,6 +110,8 @@ class Joueur :
             message = message_queue.get().split()
             if message[0] == "HAND" :
                 self.receive_other_player_card(id_joueur, int(message[1]), message[2], message[3])
+            elif message[0] == "TURN" :
+                self.tour = True
             else:
                 self.receive_hint(message[1], message[2], message[3])
     
@@ -237,7 +251,7 @@ class Joueur :
                     print("Tes cartes :")
                     self.show_hand(self.id)
                     
-                    print("Les cartes des autres joueurs :")
+                    print("Les cartes des autres joueurs :\n")
                     for i in range(self.nb_joueurs) :
                         if i != self.id :
                             print(f"Cartes du joueur {i} :")
@@ -254,13 +268,12 @@ class Joueur :
                         if choix == "1" :
                             indice_carte_a_jouer = int(input("Quelle carte veux-tu jouer ? (de 1 à 5) : "))                            
                             resultat = self.play_card(indice_carte_a_jouer - 1, game_socket)
-                            print(resultat)
                             if resultat == "WRIGHT" :
-                                print("Bonne carte, bien joué !")
+                                print("\nBonne carte, bien joué !")
                             elif resultat == "WRONG" :
-                                print("Mauvaise carte, tu t'es trompé, noob !")
-                            print("Au tour du joueur suivant !")
-                            self.tour = False
+                                print("\nMauvaise carte, tu t'es trompé, noob !")
+                            
+                            self.end_turn()
 
                         elif choix == "2" :
                             numero_joueur = -1
@@ -278,13 +291,8 @@ class Joueur :
                                 else :
                                     print("Choix invalide")
                                 
-                            self.give_hint(type_hint ,valeur_hint, numero_joueur)
-                            
-                            self.tour = False
-                        
-                    
-
-
+                            self.give_hint(type_hint ,valeur_hint, numero_joueur)                            
+                            self.end_turn()
         
 if __name__ == "__main__" :
     pass
