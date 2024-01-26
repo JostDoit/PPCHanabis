@@ -100,38 +100,39 @@ class Joueur :
             couleur = Couleurs.VIOLET
         print(f"{couleur}{texte}{Couleurs.RESET}", end="")
     
-    def is_couleur_carte_known(self, indice) :
+    def is_couleur_carte_known(self, indice, id_player) :
         """Renvoie la couleur de la carte si elle est connue, sinon renvoie "" """
-        if self.known_hand[indice][1] :
-            return self.hand[indice].couleur
+        if self.known_hand[id_player][indice][1] :
+            return self.hand[id_player][indice].couleur
         else :
             return ""
     
-    def show_hand(self) :
-        """Affiche la main du joueur"""
+    def show_hand(self, id_player) :
+        """Affiche la main d'un joueur"""
         for i in range(5) :
-            self.print_en_couleur("┌───────┐ ", self.is_couleur_carte_known(i))
+            self.print_en_couleur("┌───────┐ ", self.is_couleur_carte_known(i, id_player))
         print()       
             
         for i in range(5) :
-            self.print_en_couleur("|       | ", self.is_couleur_carte_known(i))
+            self.print_en_couleur("|       | ", self.is_couleur_carte_known(i, id_player))
         print()
         
         for i in range(5) :
             valeur_carte = "?"
-            if self.known_hand[i][0] :
-                valeur_carte = self.hand[i].numero
-            self.print_en_couleur(f"|   {valeur_carte}   | ", self.is_couleur_carte_known(i))
+            if self.known_hand[id_player][i][0] :
+                valeur_carte = self.hand[id_player][i].numero
+            self.print_en_couleur(f"|   {valeur_carte}   | ", self.is_couleur_carte_known(i, id_player))
         print()
         
         for i in range(5) :
-            self.print_en_couleur("|       | ", self.is_couleur_carte_known(i))
+            self.print_en_couleur("|       | ", self.is_couleur_carte_known(i, id_player))
         print()
         
         for i in range(5) :
-            self.print_en_couleur("└───────┘ ", self.is_couleur_carte_known(i))
+            self.print_en_couleur("└───────┘ ", self.is_couleur_carte_known(i, id_player))
         print()
         print()
+    
     
     def show_tas(self, tas) :
         """Affiche le tas"""
@@ -171,9 +172,12 @@ class Joueur :
                     print("Voici le tas :")
                     self.show_tas(tas)
                     print("Tes cartes :")
-                    self.show_hand()
+                    self.show_hand(self.id)
                     print("Les cartes des autres joueurs :")
-                    self.show_other_players_hands()
+                    for i in range(self.nb_joueurs) :
+                        if i != self.id :
+                            print(f"Cartes du joueur {i} :")
+                            self.show_hand(i)
 
                     choix = " "
                     while choix not in ["1", "2"] :
