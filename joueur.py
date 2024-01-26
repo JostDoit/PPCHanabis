@@ -45,6 +45,7 @@ class Joueur :
 
     def draw_first_hand(self, game_socket) :
         """Récupère les 5 premières cartes de la pioche"""
+        self.hand[self.id] = []
         for _ in range(5) :
             self.draw_card(game_socket)
         
