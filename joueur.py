@@ -45,6 +45,8 @@ class Joueur :
 
     def draw_first_hand(self, game_socket) :
         """Récupère les 5 premières cartes de la pioche"""
+        self.hand[self.id] = []
+        self.known_hand[self.id] = []
         for _ in range(5) :
             self.draw_card(game_socket)
         
@@ -56,17 +58,20 @@ class Joueur :
     
     def get_other_players_hands(self) :
         """Récupère les mains des autres joueurs"""
-        for message_queue in self.message_queues_in.values() :
+        for id, message_queue in self.message_queues_in.items() :
+            self.hand[id] = []
             for _ in range(5) :
                 message = message_queue.get().split()
-                self.hand[int(message[1])] = game.Carte(message[2], message[3])
+                print(message)
+                self.hand[id].append(game.Carte(message[1], message[2]))
     
     def show_my_hand_to_other(self) :
         """Envoie sa main aux autres joueurs"""
         for i in range(self.nb_joueurs) :
-            for j in range(5) :
-                message = " ".join(map(str, ("HAND", self.id, self.hand[j].couleur, self.hand[j].numero)))
-                self.message_queues_out[i].put(message)
+            if i != self.id :
+                for j in range(5) :
+                    message = " ".join(map(str, ("HAND", self.hand[self.id][j].numero, self.hand[self.id][j].couleur)))
+                    self.message_queues_out[i].put(message)
 
     def give_hint(self, hint) :
         """Envoie un hint à un joueur"""
@@ -100,38 +105,39 @@ class Joueur :
             couleur = Couleurs.VIOLET
         print(f"{couleur}{texte}{Couleurs.RESET}", end="")
     
-    def is_couleur_carte_known(self, indice) :
+    def is_couleur_carte_known(self, indice, id_player) :
         """Renvoie la couleur de la carte si elle est connue, sinon renvoie "" """
-        if self.known_hand[indice][1] :
-            return self.hand[indice].couleur
+        if self.known_hand[id_player][indice][1] or self.id != id_player:
+            return self.hand[id_player][indice].couleur
         else :
             return ""
     
-    def show_hand(self) :
-        """Affiche la main du joueur"""
+    def show_hand(self, id_player) :
+        """Affiche la main d'un joueur"""
         for i in range(5) :
-            self.print_en_couleur("┌───────┐ ", self.is_couleur_carte_known(i))
+            self.print_en_couleur("┌───────┐ ", self.is_couleur_carte_known(i, id_player))
         print()       
             
         for i in range(5) :
-            self.print_en_couleur("|       | ", self.is_couleur_carte_known(i))
+            self.print_en_couleur("|       | ", self.is_couleur_carte_known(i, id_player))
         print()
         
         for i in range(5) :
             valeur_carte = "?"
-            if self.known_hand[i][0] :
-                valeur_carte = self.hand[i].numero
-            self.print_en_couleur(f"|   {valeur_carte}   | ", self.is_couleur_carte_known(i))
+            if self.known_hand[id_player][i][0] or self.id != id_player:
+                valeur_carte = self.hand[id_player][i].numero
+            self.print_en_couleur(f"|   {valeur_carte}   | ", self.is_couleur_carte_known(i, id_player))
         print()
         
         for i in range(5) :
-            self.print_en_couleur("|       | ", self.is_couleur_carte_known(i))
+            self.print_en_couleur("|       | ", self.is_couleur_carte_known(i, id_player))
         print()
         
         for i in range(5) :
-            self.print_en_couleur("└───────┘ ", self.is_couleur_carte_known(i))
+            self.print_en_couleur("└───────┘ ", self.is_couleur_carte_known(i, id_player))
         print()
         print()
+    
     
     def show_tas(self, tas) :
         """Affiche le tas"""
@@ -163,6 +169,10 @@ class Joueur :
             # Connexion au serveur
             game_socket.connect(("localhost", port))
             self.draw_first_hand(game_socket)
+            self.show_my_hand_to_other()
+            print("Attente des autres joueurs...")
+            self.get_other_players_hands()
+            print("Tout le monde est là, la partie peut commencer !")
             while True :
                 if self.tour :
                     clear_func()
@@ -171,9 +181,12 @@ class Joueur :
                     print("Voici le tas :")
                     self.show_tas(tas)
                     print("Tes cartes :")
-                    self.show_hand()
+                    self.show_hand(self.id)
                     print("Les cartes des autres joueurs :")
-                    self.show_other_players_hands()
+                    for i in range(self.nb_joueurs) :
+                        if i != self.id :
+                            print(f"Cartes du joueur {i} :")
+                            self.show_hand(i)
 
                     choix = " "
                     while choix not in ["1", "2"] :

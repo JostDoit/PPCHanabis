@@ -38,15 +38,17 @@ def main(port):
         
         joueurs = []
         for i in range(nb_joueurs):
-            joueurs.append(joueur.Joueur(i))
+            joueurs.append(joueur.Joueur(i, nb_joueurs))
         joueurs[0].tour = True
 
         # Création des queues
-        for player in joueurs:
-            for other_joueur in joueurs:
-                if player.id != other_joueur.id:
-                    player.message_queues_in[other_joueur.id] = Queue()
-                    player.message_queues_out[other_joueur.id] = Queue()
+        for i in range(nb_joueurs):
+            for j in range(nb_joueurs):
+                if i != j:
+                    q = Queue()
+                    joueurs[i].message_queues_out[j] = q
+                    joueurs[j].message_queues_in[i] = q
+                    
 
         # Création des processus
         processes = []
@@ -56,7 +58,7 @@ def main(port):
         threads = []
         # Création des threads joueurs
         for player in joueurs:
-            threads.append(threading.Thread(target = player.run, args = (tas, tokens, clear, nb_joueurs, port)))
+            threads.append(threading.Thread(target = player.run, args = (tas, tokens, clear, port)))
         
 
         # Lancement des processus
