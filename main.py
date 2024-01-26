@@ -3,7 +3,6 @@ import sys
 import joueur
 import game_objects
 from multiprocessing import Process, Manager, Queue
-import time
 import threading
 
 def clear() :

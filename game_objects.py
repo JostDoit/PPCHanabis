@@ -7,7 +7,6 @@ import os
 
 couleurs = ["rouge", "vert", "bleu", "jaune", "violet"]
 
-
 class Carte :
     def __init__(self, numero, couleur) :
         self.numero = numero
