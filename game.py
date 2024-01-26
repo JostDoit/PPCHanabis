@@ -2,6 +2,8 @@ import random
 from multiprocessing import Process, Manager
 import socket
 import time
+import signal
+import os
 
 couleurs = ["rouge", "vert", "bleu", "jaune", "violet"]
 
@@ -45,12 +47,17 @@ class Tas :
     def ajouter_tas (self, carte) :
         self.tas[carte.couleur] = carte
 
+def handler(sig, process, frame):
+    if sig == signal.SIGUSR1:
+        os.kill(process.pid, signal.SIGKILL)
+        print("Game is over. Exiting all processes.")
+
 def handlerEndGame(nb_joueurs, tas, tokens) :
     while True :
         if sum([list(tas.tas.values())[i] for i in range(nb_joueurs)]) == nb_joueurs*5 :
-            break
-        elif tokens.vies != 0 : 
-            break
+            os.kill(os.getpid(), signal.SIGUSR1) #ici on arrete tous les processus
+        elif tokens.vies != 0 :
+            os.kill(os.getpid(), signal.SIGUSR1) #ici aussi
 
 
 def gameProcess(tas, tokens, nb_joueurs, port) :
@@ -75,7 +82,7 @@ def handleMessage(s, msg, tas, tokens, pioche) : #fonction qui traite le message
             tokens.vies.value -= 1
             SendCards(s, 1, "WRONG", pioche)
 
-def client_handler(s, tas, tokens, pioche) :
+def client_handler(s, tas, tokens, pioche) :  #lorsqu'un client se connecte, cette fonction s'occupera de lui de manière cool
     with s :
         data = s.recv(1024)
         while len(data) :
@@ -83,14 +90,14 @@ def client_handler(s, tas, tokens, pioche) :
             handleMessage(s, msgfromclient, tas, tokens, pioche)
             data = s.recv(1024)
 
-def SendCards(s, n, msg, pioche) :
+def SendCards(s, n, msg, pioche) :  #envoie n cartes sous forme de message socket à un joueur
     for _ in range(n) :
         carte = pioche.piocher()
         message = msg + " " + str(carte.numero) + " " + carte.couleur
         s.send(message.encode())
         time.sleep(0.1)
 
-def socketProcess(nb_joueurs, tas, tokens, pioche, port) :
+def socketProcess(nb_joueurs, tas, tokens, pioche, port) :  # process appelé lorsqu'on initialise une connexion avec un joueur
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket :
         server_socket.bind(("localhost", port))
         server_socket.listen(nb_joueurs)
