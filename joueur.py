@@ -61,11 +61,13 @@ class Joueur :
     def play_card(self, indice_card_to_play, game_socket) :
         """Envoie au serveur la carte à jouer"""
         card_to_play = self.hand[self.id][indice_card_to_play]
-        message = "PLAY " + " ".join(map(str, (card_to_play.numero, card_to_play.couleur)))
+        numero_carte = card_to_play.numero
+        couleur_carte = card_to_play.couleur
+        message = "PLAY " + " ".join(map(str, (numero_carte, couleur_carte)))
         game_socket.sendall(message.encode())
         del self.known_hand[self.id][indice_card_to_play]
         del self.hand[self.id][indice_card_to_play]
-        return self.draw_card(game_socket, indice_card_to_play)
+        return self.draw_card(game_socket, indice_card_to_play), numero_carte, couleur_carte
         
     
     def show_my_hand_to_other(self) :
@@ -290,11 +292,14 @@ class Joueur :
                         if choix == "1" :
                             
                                 indice_carte_a_jouer = int(input("Quelle carte veux-tu jouer ? (de 1 à 5) : "))                            
-                                resultat = self.play_card(indice_carte_a_jouer - 1, game_socket)
+                                resultat, valeure, couleure = self.play_card(indice_carte_a_jouer - 1, game_socket)
+                                print(f"Vous avez joué la carte {valeure} {couleure}")
                                 if resultat == "RIGHT" :
-                                    print("\nBonne carte, bien joué !")
+                                    print("\nBien joué ! Vous pouviez jouer cette carte !")
+                                    print("Voici à quoi ressemble le tas maintenant :")
+                                    self.show_tas(tas)
                                 elif resultat == "WRONG" :
-                                    print("\nMauvaise carte, tu t'es trompé, noob !")
+                                    print("\nMauvaise carte ! Vous perdez une vie !")
                                 
                                 self.end_turn()
                             
