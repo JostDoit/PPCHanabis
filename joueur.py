@@ -46,15 +46,16 @@ class Joueur :
         for _ in range(5) :
             self.draw_card(game_socket)
     
-    def draw_card(self, game_socket) :
+    def draw_card(self, game_socket, indice_card_to_play = -1) :
         """Récupère une carte de la pioche"""
         data = game_socket.recv(1024).decode().split()
         new_card = game_objects.Carte(data[1], data[2])
         self.hand[self.id].insert(0, new_card)
-        self.known_hand[self.id].insert(0, [False, False])
+        self.known_hand[self.id].insert(0, [False, False])        
         resultat = data[0]
         # Test s'il s'agit d'une carte piochée au début du jeu ou après un PLAY
         if resultat != "CARD" :
+            self.show_new_hand_to_other(indice_card_to_play)
             return resultat
 
     def play_card(self, indice_card_to_play, game_socket) :
@@ -64,7 +65,7 @@ class Joueur :
         game_socket.sendall(message.encode())
         del self.known_hand[self.id][indice_card_to_play]
         del self.hand[self.id][indice_card_to_play]
-        return self.draw_card(game_socket)
+        return self.draw_card(game_socket, indice_card_to_play)
         
     
     def show_my_hand_to_other(self) :
@@ -74,6 +75,13 @@ class Joueur :
                 for j in range(5) :
                     message = " ".join(map(str, ("HAND", j, self.hand[self.id][j].numero, self.hand[self.id][j].couleur)))
                     self.message_queues_out[i].put(message)
+    
+    def show_new_hand_to_other(self, indice_card_to_play) :
+        """Préviens l'indice de la carte jouée aux autres joueurs et annonce la carte piochée"""
+        for i in range(self.nb_joueurs) :
+            if i != self.id :
+                message = " ".join(map(str, ("PLAY", indice_card_to_play, self.hand[self.id][0].numero, self.hand[self.id][0].couleur)))
+                self.message_queues_out[i].put(message)
 
     def give_hint(self, type_hint, valeur_hint, numero_joueur) :
         """Envoie un hint à un joueur"""
@@ -112,15 +120,24 @@ class Joueur :
         while True :
             message = message_queue.get().split()
             if message[0] == "HAND" :
+                self.receive_other_player_hand(id_joueur, int(message[1]), message[2], message[3])
+            elif message[0] == "PLAY" :
                 self.receive_other_player_card(id_joueur, int(message[1]), message[2], message[3])
             elif message[0] == "TURN" :
                 self.tour = True
             else:
                 self.receive_hint(message[0], message[1], int(message[2]))
     
-    def receive_other_player_card(self, id_joueur, indice_card, valeur_carte, couleur_carte) :
+    def receive_other_player_hand(self, id_joueur, indice_card, valeur_carte, couleur_carte) :
         """Récupère les mains des autres joueurs"""
         self.hand[id_joueur][indice_card] = game_objects.Carte(valeur_carte, couleur_carte)
+    
+    def receive_other_player_card(self, id_joueur, indice_card, valeur_carte, couleur_carte) :
+        """Récupère l'indice de la carte jouée par un autre jouer et les infos de la carte piochée"""
+        del self.hand[id_joueur][indice_card]
+        del self.known_hand[id_joueur][indice_card]
+        self.hand[id_joueur].insert(0, game_objects.Carte(valeur_carte, couleur_carte))
+        self.known_hand[id_joueur].insert(0, [False, False])
 
     def receive_hint(self, type_hint, value_hint, player_who_received_hint) :
         """Reçoit un hint d'un joueur"""
@@ -269,37 +286,43 @@ class Joueur :
                         print("1 - Jouer une carte")
                         print("2 - Donner un hint")
                         choix = input("Entrez votre choix : ")
+                        
                         if choix == "1" :
-                            indice_carte_a_jouer = int(input("Quelle carte veux-tu jouer ? (de 1 à 5) : "))                            
-                            resultat = self.play_card(indice_carte_a_jouer - 1, game_socket)
-                            if resultat == "RIGHT" :
-                                print("\nBonne carte, bien joué !")
-                            elif resultat == "WRONG" :
-                                print("\nMauvaise carte, tu t'es trompé, noob !")
                             
-                            self.end_turn()
-
-                        elif choix == "2" :
-                            numero_joueur = -1
-                            type_hint = ""
-                            valeur_hint = ""
-                            while (numero_joueur < 0 or numero_joueur >= self.nb_joueurs):
-                                try:
-                                    numero_joueur = int(input("Entrez le numéro du joueur à qui donner le hint : "))
-                                except ValueError:
-                                    print("Choix invalide")
-                            while type_hint not in ["color", "number"] :
-                                type_hint = input("Entrez le type de hint (color ou number) : ")
-                            if type_hint == "color" :
-                                while valeur_hint not in ["rouge", "vert", "bleu", "jaune", "violet"] :                              
-                                    valeur_hint = input("Entrez la couleur du hint (rouge, vert, bleu, jaune ou violet) : ")
-                            elif type_hint == "number" :
-                                while valeur_hint not in ["1", "2", "3", "4", "5"] :
-                                    valeur_hint = input("Entrez le numéro du hint (de 1 à 5) : ")
+                                indice_carte_a_jouer = int(input("Quelle carte veux-tu jouer ? (de 1 à 5) : "))                            
+                                resultat = self.play_card(indice_carte_a_jouer - 1, game_socket)
+                                if resultat == "RIGHT" :
+                                    print("\nBonne carte, bien joué !")
+                                elif resultat == "WRONG" :
+                                    print("\nMauvaise carte, tu t'es trompé, noob !")
                                 
-                            self.give_hint(type_hint ,valeur_hint, numero_joueur)
-                            tokens.hint.value -= 1                        
-                            self.end_turn()
+                                self.end_turn()
+                            
+                        elif choix == "2" :
+                            if tokens.hint.value > 0 :
+                                numero_joueur = -1
+                                type_hint = ""
+                                valeur_hint = ""
+                                while (numero_joueur < 0 or numero_joueur >= self.nb_joueurs):
+                                    try:
+                                        numero_joueur = int(input("Entrez le numéro du joueur à qui donner le hint : "))
+                                    except ValueError:
+                                        print("Choix invalide")
+                                while type_hint not in ["color", "number"] :
+                                    type_hint = input("Entrez le type de hint (color ou number) : ")
+                                if type_hint == "color" :
+                                    while valeur_hint not in ["rouge", "vert", "bleu", "jaune", "violet"] :                              
+                                        valeur_hint = input("Entrez la couleur du hint (rouge, vert, bleu, jaune ou violet) : ")
+                                elif type_hint == "number" :
+                                    while valeur_hint not in ["1", "2", "3", "4", "5"] :
+                                        valeur_hint = input("Entrez le numéro du hint (de 1 à 5) : ")
+                                    
+                                self.give_hint(type_hint ,valeur_hint, numero_joueur)
+                                tokens.hint.value -= 1                        
+                                self.end_turn()
+                            else: 
+                                print("Vous n'avez plus d'indice disponible !")
+                                choix = " "
         
 if __name__ == "__main__" :
     pass
