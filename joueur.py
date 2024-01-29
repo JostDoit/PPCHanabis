@@ -261,21 +261,26 @@ class Joueur :
 
             waiting_to_receive_other_players_hands = True
             while waiting_to_receive_other_players_hands :
-                for i in range(self.nb_joueurs) :
-                    for j in range(5) :
-                        if self.hand[i][j].numero != 0 :
-                            waiting_to_receive_other_players_hands = False
-                        else :
-                            waiting_to_receive_other_players_hands = True
-                time.sleep(1)
+                for i in range(self.nb_joueurs) :                    
+                    if i != self.id :
+                        wait_player = True
+                        while wait_player :
+                            for j in range(5) :
+                                if self.hand[i][j].numero != 0 :
+                                    wait_player = False
+                                else :
+                                    wait_player = True
+                        if self.id == 0 :                            
+                            print(f"Réception de la main du joueur {i} !")
+                waiting_to_receive_other_players_hands = False
 
             
             # Boucle d'un tour de jeu
             while not exit_flag.is_set() :
                 if self.tour :
-                    #clear_func()
-                    print("Joueur", self.id, "à ton tour !")
-                    print(f"Il vous reste acctuellement {tokens.vies.value} vies et {tokens.hint.value} hints disponibles.")
+                    clear_func()
+                    print("Joueur", self.id, "à ton tour !\n")
+                    print(f"Il vous reste acctuellement {tokens.vies.value} vies et {tokens.hint.value} hints disponibles.\n")
                     print("Voici le tas :")
                     self.show_tas(tas)
                     
@@ -324,18 +329,26 @@ class Joueur :
                                             numero_joueur = int(input("Entrez le numéro du joueur à qui donner le hint : "))
                                         except ValueError:
                                             print("Choix invalide")
-                                while type_hint not in ["color", "number"] :
-                                    type_hint = input("Entrez le type de hint (color ou number) : ")
-                                if type_hint == "color" :
+                                while type_hint not in ["1", "2"] :
+                                    print("Entrez le type de hint :")
+                                    print("1 - Couleur")
+                                    print("2 - Numéro")
+                                    type_hint = input("Votre choix :")
+                                    if type_hint not in ["1", "2"] :
+                                        print("Choix invalide !\n")
+                                
+                                if type_hint == "1" :
                                     while valeur_hint not in self.color_options :                              
                                         valeur_hint = input(f"Entrez la couleur du hint {self.color_options} : ")
-                                elif type_hint == "number" :
+                                
+                                elif type_hint == "2" :
                                     while valeur_hint not in ["1", "2", "3", "4", "5"] :
                                         valeur_hint = input("Entrez le numéro du hint (de 1 à 5) : ")
                                     
                                 self.give_hint(type_hint ,valeur_hint, numero_joueur)
                                 tokens.hint.value -= 1                        
                                 self.end_turn()
+                            
                             else: 
                                 print("Vous n'avez plus d'indice disponible !")
                                 choix = " "

@@ -50,7 +50,7 @@ def main(port):
                 nb_joueurs = int(input("Entrez le nombre de joueurs (entre 2 à 5) : "))
             except ValueError :
                 nb_joueurs = 0
-                print("Veuillez entrer un nombre valide")        
+                print("Veuillez entrer un nombre valide")
         
         # Création du bon nombre d'objets joueurs
         joueurs = []
