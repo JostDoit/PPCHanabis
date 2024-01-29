@@ -233,7 +233,7 @@ class Joueur :
         print()
         print()
     
-    def run(self, tas, tokens, clear_func, port) :
+    def run(self, tas, tokens, clear_func, port, exit_flag) :
         """Fonction principale du joueur"""
         # Création de la socket du joueur
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as game_socket :
@@ -271,9 +271,9 @@ class Joueur :
 
             
             # Boucle d'un tour de jeu
-            while True :
+            while not exit_flag.is_set() :
                 if self.tour :
-                    clear_func()
+                    #clear_func()
                     print("Joueur", self.id, "à ton tour !")
                     print(f"Il vous reste acctuellement {tokens.vies.value} vies et {tokens.hint.value} hints disponibles.")
                     print("Voici le tas :")
