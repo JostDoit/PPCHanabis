@@ -25,7 +25,7 @@ def printTitle() :
 def handler(sig, frame) :
     if sig == signal.SIGUSR1:
         exit_flag.set()
-        print("Game is over. Exiting all processes.")
+        print("Game is over. Terminating joueurs threads.")
 
 def handlerEndGame(nb_joueurs, tas, tokens, gamePID) :
     while True :
@@ -86,13 +86,16 @@ def main(port):
             t.start()
         
         gamePID = game.pid
-        print(gamePID)
         handlerendgame = Process(target = handlerEndGame, args = (nb_joueurs, tas, tokens, gamePID))
         handlerendgame.start()
+        
         # Attente de la fin du processus de jeu et des threads joueurs
         handlerendgame.join()
+        
         for t in threads:
             t.join()
+            print(f"Thread joueur {t} joined")
+        
         game.join()
 
     

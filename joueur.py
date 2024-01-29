@@ -24,6 +24,8 @@ class Joueur :
         self.message_queues_in = {} # Dictionnaire contenant les Message queue pour les messages entrants entre les joueurs, les cles etant l'id d'un joueur et la valeur une Message queue
         self.message_queues_out = {} # Dictionnaire contenant les Message queue pour les messages sortants entre les joueurs, les cles etant l'id d'un joueur et la valeur une Message queue
         self.color_options = []
+        self.running = True
+        self.message_queue_in_handlers = []
 
         self.init_hands()
         self.init_known_hand()
@@ -119,24 +121,26 @@ class Joueur :
     
     def handle_message_queues_in(self) :
         """Crée les handlers pour les messages entrants"""
-        message_queue_in_handlers = []
         for id_joueur, message_queue in self.message_queues_in.items() :
-            message_queue_in_handlers.append(threading.Thread(target = self.handle_message_queue_in, args = (message_queue, id_joueur)))
-        for handler in message_queue_in_handlers :
+            self.message_queue_in_handlers.append(threading.Thread(target = self.handle_message_queue_in, args = (message_queue, id_joueur)))
+        for handler in self.message_queue_in_handlers :
             handler.start()
     
     def handle_message_queue_in(self, message_queue, id_joueur) :
         """Lit les messages entrants"""
-        while True :
-            message = message_queue.get().split()
-            if message[0] == "HAND" :
-                self.receive_other_player_hand(id_joueur, int(message[1]), message[2], message[3])
-            elif message[0] == "PLAY" :
-                self.receive_other_player_card(id_joueur, int(message[1]), message[2], message[3])
-            elif message[0] == "TURN" :
-                self.tour = True
+        while self.running :
+            if message_queue.empty() :
+                continue
             else:
-                self.receive_hint(message[0], message[1], int(message[2]))
+                message = message_queue.get().split()
+                if message[0] == "HAND" :
+                    self.receive_other_player_hand(id_joueur, int(message[1]), message[2], message[3])
+                elif message[0] == "PLAY" :
+                    self.receive_other_player_card(id_joueur, int(message[1]), message[2], message[3])
+                elif message[0] == "TURN" :
+                    self.tour = True
+                else:
+                    self.receive_hint(message[0], message[1], int(message[2]))
     
     def receive_other_player_hand(self, id_joueur, indice_card, valeur_carte, couleur_carte) :
         """Récupère les mains des autres joueurs"""
@@ -302,9 +306,14 @@ class Joueur :
                         print("2 - Donner un hint")
                         choix = input("Entrez votre choix : ")
                         
-                        if choix == "1" :
-                            
-                                indice_carte_a_jouer = int(input("Quelle carte veux-tu jouer ? (de 1 à 5) : "))                            
+                        if choix == "1" :                
+                                indice_carte_a_jouer = 0
+                                while indice_carte_a_jouer < 1 or indice_carte_a_jouer > 5 :
+                                    try :
+                                        indice_carte_a_jouer = int(input("Quelle carte veux-tu jouer ? (de 1 à 5) : "))
+                                    except ValueError :
+                                        indice_carte_a_jouer = 0
+                                        print("Veuillez entrer un nombre valide")                     
                                 resultat, valeure, couleure = self.play_card(indice_carte_a_jouer - 1, game_socket)
                                 print(f"Vous avez joué la carte {valeure} {couleure}")
                                 if resultat == "RIGHT" :
@@ -352,6 +361,10 @@ class Joueur :
                             else: 
                                 print("Vous n'avez plus d'indice disponible !")
                                 choix = " "
+            self.running = False
+            for handler in self.message_queue_in_handlers :
+                handler.join()
+                print(f"Thread handler {handler} joined")
         
 if __name__ == "__main__" :
     pass
