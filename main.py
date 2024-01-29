@@ -4,6 +4,7 @@ import joueur
 import game_objects
 from multiprocessing import Process, Manager, Queue
 import threading
+import signal
 
 def clear() :
     # Permet de nettoyer la console au lancement du jeu et entre chaque tour (windows et linux)
@@ -21,6 +22,7 @@ def printTitle() :
     """)
 
 def main(port):
+    signal.signal(signal.SIGUSR1, game_objects.handler)
     printTitle()
     with Manager() as manager:
 

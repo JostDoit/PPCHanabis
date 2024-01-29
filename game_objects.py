@@ -4,6 +4,7 @@ import socket
 import time
 import signal
 import os
+import sys
 
 couleurs = ["rouge", "vert", "bleu", "jaune", "violet"]
 
@@ -52,11 +53,12 @@ def handler(sig, process, frame):
         print("Game is over. Exiting all processes.")
 
 def handlerEndGame(nb_joueurs, tas, tokens) :
+    signal.signal(signal.SIGUSR1, handler)
     while True :
         if sum([list(tas.tas.values())[i] for i in range(nb_joueurs)]) == nb_joueurs*5 :
-            os.kill(os.getpid(), signal.SIGUSR1) #ici on arrete tous les processus
-        elif tokens.vies != 0 :
-            os.kill(os.getpid(), signal.SIGUSR1) #ici aussi
+            sys.exit(0) #ici on arrete tous les processus
+        elif tokens.vies == 0 :
+            sys.exit(0) #ici aussi
 
 
 def gameProcess(tas, tokens, nb_joueurs, port) :
