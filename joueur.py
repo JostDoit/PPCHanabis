@@ -341,7 +341,7 @@ class Joueur :
                                     while valeur_hint not in self.color_options :                              
                                         valeur_hint = input(f"Entrez la couleur du hint {self.color_options} : ")
                                 
-                                elif type_hint == "2" :
+                                elif type_hint == "2  " :
                                     while valeur_hint not in ["1", "2", "3", "4", "5"] :
                                         valeur_hint = input("Entrez le numéro du hint (de 1 à 5) : ")
                                     

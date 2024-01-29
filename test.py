@@ -1,24 +1,38 @@
 import multiprocessing
+import threading
+import time
+import signal
+import os
 
-def processus_enfant(queue):
-    user_input = input("Entrez quelque chose dans le processus enfant : ")
-    queue.put(user_input)
+def worker():
+    while not exit_flag.is_set():
+        print("Thread working...")
+        time.sleep(1)
+
+def signal_handler(signum, frame):
+    exit_flag.set()
 
 if __name__ == "__main__":
-    # Création d'une file d'attente partagée entre le processus parent et le processus enfant
-    ma_queue = multiprocessing.Queue()
+    exit_flag = threading.Event()
+    signal.signal(signal.SIGINT, signal_handler)
 
-    # Création d'un processus enfant
-    processus = multiprocessing.Process(target=processus_enfant, args=(ma_queue,))
+    # Créer un processus principal
+    main_process = multiprocessing.Process(target=worker)
 
-    # Démarrage du processus enfant
-    processus.start()
+    # Démarrer le processus principal
+    main_process.start()
 
-    # Attente que le processus enfant se termine
-    processus.join()
+    try:
+        # Attendre la fin du processus principal
+        main_process.join()
+    except KeyboardInterrupt:
+        # Si vous appuyez sur Ctrl+C, cela déclenchera le signal SIGINT
+        pass
+    finally:
+        # Set exit_flag pour demander à tous les threads de s'arrêter
+        exit_flag.set()
 
-    # Récupération des données de la file d'attente
-    user_input_from_child = ma_queue.get()
+        # Attendre que tous les threads se terminent
+        main_process.join()
 
-    # Affichage de l'entrée utilisateur du processus enfant
-    print(f"Entrée utilisateur du processus enfant : {user_input_from_child}")
+    print("Programme terminé.")
