@@ -316,11 +316,14 @@ class Joueur :
                                 numero_joueur = -1
                                 type_hint = ""
                                 valeur_hint = ""
-                                while (numero_joueur < 0 or numero_joueur >= self.nb_joueurs):
-                                    try:
-                                        numero_joueur = int(input("Entrez le numéro du joueur à qui donner le hint : "))
-                                    except ValueError:
-                                        print("Choix invalide")
+                                if self.nb_joueurs == 2 :
+                                    numero_joueur = (self.id + 1) % 2
+                                else :
+                                    while (numero_joueur < 0 or numero_joueur >= self.nb_joueurs):
+                                        try:
+                                            numero_joueur = int(input("Entrez le numéro du joueur à qui donner le hint : "))
+                                        except ValueError:
+                                            print("Choix invalide")
                                 while type_hint not in ["color", "number"] :
                                     type_hint = input("Entrez le type de hint (color ou number) : ")
                                 if type_hint == "color" :
