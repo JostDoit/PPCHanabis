@@ -33,7 +33,7 @@ def main(port):
                 nb_joueurs = 0
                 print("Veuillez entrer un nombre valide")        
         
-        # Création des joueurs
+        # Création du bon nombre d'objets joueurs
         joueurs = []
         for i in range(nb_joueurs):
             joueurs.append(joueur.Joueur(i, nb_joueurs))

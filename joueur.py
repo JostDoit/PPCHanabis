@@ -23,9 +23,11 @@ class Joueur :
         self.known_hand = {}    # dictionnaire contenant les informations que possède chaque joueur sur sa main, les cles etant l'id d'un joueur et la valeur une liste contenant des tuples (bool, bool) indiquant si la couleur et/ou le numero de la carte est connu
         self.message_queues_in = {} # Dictionnaire contenant les Message queue pour les messages entrants entre les joueurs, les cles etant l'id d'un joueur et la valeur une Message queue
         self.message_queues_out = {} # Dictionnaire contenant les Message queue pour les messages sortants entre les joueurs, les cles etant l'id d'un joueur et la valeur une Message queue
+        self.color_options = []
 
         self.init_hands()
         self.init_known_hand()
+        self.init_color_options()
     
     def init_known_hand(self) :
         """Initialise le dictionnaire known_hand avec des tuples (False, False)"""
@@ -40,6 +42,12 @@ class Joueur :
             self.hand[i] = []
             for _ in range(5) :
                 self.hand[i].append(game_objects.Carte(0, 0))
+    
+    def init_color_options(self) :
+        """Initialise la liste des couleurs possibles"""
+        colors = ["rouge", "vert", "bleu", "jaune", "violet"]
+        for i in range(self.nb_joueurs) :
+            self.color_options.append(colors[i])
     
     def draw_first_hand(self, game_socket) :
         """Récupère les 5 premières cartes de la pioche"""
@@ -316,8 +324,8 @@ class Joueur :
                                 while type_hint not in ["color", "number"] :
                                     type_hint = input("Entrez le type de hint (color ou number) : ")
                                 if type_hint == "color" :
-                                    while valeur_hint not in ["rouge", "vert", "bleu", "jaune", "violet"] :                              
-                                        valeur_hint = input("Entrez la couleur du hint (rouge, vert, bleu, jaune ou violet) : ")
+                                    while valeur_hint not in self.color_options :                              
+                                        valeur_hint = input(f"Entrez la couleur du hint {self.color_options} : ")
                                 elif type_hint == "number" :
                                     while valeur_hint not in ["1", "2", "3", "4", "5"] :
                                         valeur_hint = input("Entrez le numéro du hint (de 1 à 5) : ")
