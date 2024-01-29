@@ -47,30 +47,20 @@ class Tas :
     def ajouter_tas (self, carte) :
         self.tas[carte.couleur] = carte
 
-def handler(sig, process, frame):
-    if sig == signal.SIGUSR1:
-        os.kill(process.pid, signal.SIGKILL)
-        print("Game is over. Exiting all processes.")
+def handlerEndSignal(sig, frame) :
+    if sig == signal.SIGUSR1 :
+        print(socketPID)
+        os.kill(socketPID, signal.SIGTERM)
 
-def handlerEndGame(nb_joueurs, tas, tokens) :
-    signal.signal(signal.SIGUSR1, handler)
-    while True :
-        if sum([list(tas.tas.values())[i] for i in range(nb_joueurs)]) == nb_joueurs*5 :
-            sys.exit(0) #ici on arrete tous les processus
-        elif tokens.vies == 0 :
-            sys.exit(0) #ici aussi
-
+socketPID = -1
 
 def gameProcess(tas, tokens, nb_joueurs, port) :
+    global socketPID
+    signal.signal(signal.SIGUSR1, handlerEndSignal)
     pioche = Pioche(nb_joueurs)
-
-    ProcesshandlerEndGame = Process(target = handlerEndGame, args = (nb_joueurs, tas, tokens))
     Processsocket = Process(target = socketProcess, args = (nb_joueurs, tas, tokens, pioche, port))
-
     Processsocket.start()
-    ProcesshandlerEndGame.start()
-
-    ProcesshandlerEndGame.join()
+    socketPID = Processsocket.pid
 
 def handleMessage(s, msg, tas, tokens, pioche) : #fonction qui traite le message d'un client et qui retourne le message à retourner, "allgood" s'il n'y a rien à renvoyer
     list_msg = msg.split(" ")
