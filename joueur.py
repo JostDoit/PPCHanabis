@@ -97,7 +97,10 @@ class Joueur :
 
     def give_hint(self, type_hint, valeur_hint, numero_joueur) :
         """Envoie un hint à un joueur"""
-        hint = " ".join(map(str, (type_hint.upper(), valeur_hint, numero_joueur)))
+        if type_hint == "1" :
+            hint = " ".join(map(str, ("COLOR", valeur_hint, numero_joueur)))
+        else :
+            hint = " ".join(map(str, ("NUMBER", valeur_hint, numero_joueur)))
         
         for message_queue in self.message_queues_out.values() :
             message_queue.put(hint)
