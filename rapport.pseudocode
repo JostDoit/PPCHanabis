@@ -1,0 +1,51 @@
+
+
+
+fonction jouer_carte(indice_carte_a_jouer, socket_client):
+    // Envoie au serveur la carte à jouer
+    /* On récupère la carte à jouer dans le dictionaire main
+    avec comme clé l'id du joueur et au bon emplacement de la liste de cartes
+    contenue comme valeure*/
+    carte_à_jouer = main[id_du_joueur_actuel][indice_carte_à_jouer]
+    
+    // On récupère le numéro et la couleur de la carte à jouer
+    numero_carte = carte_à_jouer.numero
+    couleur_carte = carte_à_jouer.couleur
+    
+    // On envoie au serveur la carte à jouer
+    message = "PLAY " + concaténer_tout_en_chaine_avec_des_espaces(numero_carte, " ", couleur_carte)
+    envoyer_sur_socket(socket_client, encoder_en_octets(message))
+    
+    /* On supprime la carte jouée de la main du joueur
+    et egalement les indices connus sur cette carte*/
+    supprimer(main_connu[joueur_actuel], indice_carte_à_jouer)
+    supprimer(main[joueur_actuel], indice_carte_à_jouer)
+    
+    // Appel de la fonction permettant de piocher une carte et récupérer si 
+    //c'etait une bonne carte à jouer ou non
+    resultat = piocher_carte(socket_client, indice_carte_à_jouer)
+    
+    // On renvoie à la boucle principale des informations sur la carte jouée pour de l'affichage
+    retourner résultat, numero_carte, couleur_carte
+
+fonction piocher_carte(socket_client, indice_carte_à_jouer = -1) :
+    // Récupération du message envoyé par le serveur
+    données = décoder_en_chaine(socket_client.recevoir(1024))
+    données = diviser_avec_des_espaces(données)
+
+    // On récupère le numéro et la couleur de la carte piochée et on créé une nouvelle carte
+    nouvelle_carte = création_objet_carte(données[1], données[2])
+    
+    // On ajoute la carte piochée à la main du joueur en première position
+    main[joueur_actuel].insérer(0, nouvelle_carte)
+
+    // On initialise les informations connues sur la carte piochée à Faux
+    main_connue[joueur_actuel].insérer(0, [Faux, Faux])  # [False, False]
+    
+    // On verifie si la carte piochée fait partie des 5 cartes de départ ou d'une carte piochée après un PLAY
+    // Et le cas echéant on le renvoie à la fonction jouer_carte
+    résultat = données[0]
+    # Teste s'il s'agit d'une carte piochée au début du jeu ou après un PLAY
+    si résultat n'est pas égal à "CARD" :
+        montrer_nouvelle_main_aux_autres(indice_carte_à_jouer)
+        retourner résultat
