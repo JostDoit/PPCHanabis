@@ -97,11 +97,7 @@ class Joueur :
 
     def give_hint(self, type_hint, valeur_hint, numero_joueur) :
         """Envoie un hint à un joueur"""
-        type_hint = type_hint.upper()
-        if type_hint == "COLOR" :
-            hint = " ".join(map(str, (type_hint, valeur_hint, numero_joueur)))
-        else :
-            hint = " ".join(map(str, (type_hint, valeur_hint, numero_joueur)))
+        hint = " ".join(map(str, (type_hint.upper(), valeur_hint, numero_joueur)))
         
         for message_queue in self.message_queues_out.values() :
             message_queue.put(hint)
@@ -156,7 +152,6 @@ class Joueur :
     def receive_hint(self, type_hint, value_hint, player_who_received_hint) :
         """Reçoit un hint d'un joueur"""
         if type_hint == "COLOR" :
-            print(f"Le joueur {player_who_received_hint} a reçu un hint sur la couleur {value_hint}")
             for i in range(5) :
                 if self.hand[player_who_received_hint][i].couleur == value_hint :
                     self.known_hand[player_who_received_hint][i][1] = True
@@ -350,7 +345,7 @@ class Joueur :
                                     while valeur_hint not in self.color_options :                              
                                         valeur_hint = input(f"Entrez la couleur du hint {self.color_options} : ")
                                 
-                                elif type_hint == "2  " :
+                                elif type_hint == "2" :
                                     while valeur_hint not in ["1", "2", "3", "4", "5"] :
                                         valeur_hint = input("Entrez le numéro du hint (de 1 à 5) : ")
                                     
