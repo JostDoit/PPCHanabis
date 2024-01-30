@@ -4,7 +4,6 @@ import socket
 import time
 import signal
 import os
-import sys
 
 couleurs = ["rouge", "vert", "bleu", "jaune", "violet"]
 
@@ -49,7 +48,6 @@ class Tas :
 
 def handlerEndSignal(sig, frame) :
     if sig == signal.SIGUSR1 :
-        print(socketPID)
         os.kill(socketPID, signal.SIGTERM)
 
 socketPID = -1
@@ -93,19 +91,7 @@ def socketProcess(nb_joueurs, tas, tokens, pioche, port) :  # process appelé lo
         server_socket.bind(("localhost", port))
         server_socket.listen(nb_joueurs)
         while True :
-            client_socket, address = server_socket.accept()
+            client_socket, _ = server_socket.accept()
             SendCards(client_socket, 5, "CARD", pioche)
             p = Process(target=client_handler, args=(client_socket, tas, tokens, pioche))
             p.start()
-
-
-if __name__ == "__main__" :
-    with Manager() as manager :
-        tas = Tas(3, manager)
-        tokens = Tokens(3, manager)
-        pioche = Pioche(3)
-        gameProcess(tas, tokens, 3)
-        print(tas.tas)
-        print(tokens.vies)
-        print(tokens.hint)
-
