@@ -111,7 +111,7 @@ class Joueur :
         """Fin du tour du joueur"""
         player_to_notify = (self.id + 1) % self.nb_joueurs
         print(f"Au tour du joueur {player_to_notify} !\n")
-        input("Appuyez sur entrée pour lancer le tour du joueur suivant ou CTRL-C pour quitter...")            
+        input("Appuyez sur entrée pour lancer le tour du joueur suivant ou CTRL-C puis entrée pour quitter...")            
         self.tour = False
         self.notify_turn(player_to_notify)
     
