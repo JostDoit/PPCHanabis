@@ -115,7 +115,7 @@ class Joueur :
         """Fin du tour du joueur"""
         player_to_notify = (self.id + 1) % self.nb_joueurs
         print(f"Au tour du joueur {player_to_notify} !\n")
-        input("Appuyez sur entrée pour lancer le tour du joueur suivant...")            
+        input("Appuyez sur entrée pour lancer le tour du joueur suivant ou CTRL-C pour quitter...")            
         self.tour = False
         self.notify_turn(player_to_notify)
     
@@ -364,7 +364,3 @@ class Joueur :
             self.running = False
             for handler in self.message_queue_in_handlers :
                 handler.join()
-                print(f"Thread handler {handler} joined")
-        
-if __name__ == "__main__" :
-    pass

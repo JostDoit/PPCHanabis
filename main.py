@@ -5,7 +5,6 @@ import game_objects
 from multiprocessing import Process, Manager, Queue
 import threading
 import signal
-import time
 
 def clear() :
     # Permet de nettoyer la console au lancement du jeu et entre chaque tour (windows et linux)
@@ -23,25 +22,40 @@ def printTitle() :
     """)
 
 def handler(sig, frame) :
-    if sig == signal.SIGUSR1:
+    if sig == signal.SIGUSR1 or sig == signal.SIGINT:
         exit_flag.set()
-        print("Game is over. Terminating joueurs threads.")
+        try:
+            os.kill(game.pid, signal.SIGUSR1)
+        except:
+            pass
+        try:
+            handlerendgame.terminate()
+        except:
+            pass
 
-def handlerEndGame(nb_joueurs, tas, tokens, gamePID) :
+def handlerEndGame(nb_joueurs, tas, tokens) :
     while True :
         if (sum([list(tas.tas.values())[i] for i in range(nb_joueurs)]) == nb_joueurs*5) or (tokens.vies.value == 0) :
-            print("fin")
             os.kill(os.getppid(), signal.SIGUSR1)
-            time.sleep(2)
-            os.kill(gamePID, signal.SIGUSR1)
             break
+    
 
-def main(port):
+if __name__ == "__main__":
+
+    if len(sys.argv) < 2:
+        print("required index argument missing, terminating.", file=sys.stderr)
+        sys.exit(1)
+    try:
+        port = int(sys.argv[1])
+    except ValueError:
+        print(f"bad index argument: {sys.argv[1]}, terminating.", file=sys.stderr)
+        sys.exit(2)
+    exit_flag = threading.Event()
     signal.signal(signal.SIGUSR1, handler)
+    signal.signal(signal.SIGINT, handler)
     printTitle()
-    with Manager() as manager:
-        #liste des pids en shared data
-        pids = manager.list([])
+    
+    with Manager() as manager:        
 
         # Demande du nombre de joueurs
         nb_joueurs = 0
@@ -85,8 +99,7 @@ def main(port):
         for t in threads :
             t.start()
         
-        gamePID = game.pid
-        handlerendgame = Process(target = handlerEndGame, args = (nb_joueurs, tas, tokens, gamePID))
+        handlerendgame = Process(target = handlerEndGame, args = (nb_joueurs, tas, tokens))
         handlerendgame.start()
         
         # Attente de la fin du processus de jeu et des threads joueurs
@@ -94,21 +107,5 @@ def main(port):
         
         for t in threads:
             t.join()
-            print(f"Thread joueur {t} joined")
         
         game.join()
-
-    
-
-if __name__ == "__main__":
-
-    if len(sys.argv) < 2:
-        print("required index argument missing, terminating.", file=sys.stderr)
-        sys.exit(1)
-    try:
-        port = int(sys.argv[1])
-    except ValueError:
-        print(f"bad index argument: {sys.argv[1]}, terminating.", file=sys.stderr)
-        sys.exit(2)
-    exit_flag = threading.Event()
-    main(port)
